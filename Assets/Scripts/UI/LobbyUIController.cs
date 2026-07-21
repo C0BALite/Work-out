@@ -1,6 +1,6 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class LobbyUIController : MonoBehaviour
 {
@@ -9,6 +9,9 @@ public class LobbyUIController : MonoBehaviour
     [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private TMP_Text lobbyCodeDisplay;
+
+    [SerializeField] private GameObject createJoinPanel;   // новое поле
+    [SerializeField] private GameObject lobbyScreenPanel;  // новое поле
 
     void Start()
     {
@@ -24,6 +27,8 @@ public class LobbyUIController : MonoBehaviour
             string code = await SessionManager.Instance.CreateLobbyAsync("Host");
             lobbyCodeDisplay.text = $"Код лобби: {code}";
             statusText.text = "Лобби создано, ждём игроков";
+
+            ShowLobbyScreen(); // новое
         }
         catch (System.Exception e)
         {
@@ -41,10 +46,18 @@ public class LobbyUIController : MonoBehaviour
         {
             await SessionManager.Instance.JoinLobbyAsync(code);
             statusText.text = "Подключено!";
+
+            ShowLobbyScreen(); // новое
         }
         catch (System.Exception e)
         {
             statusText.text = $"Ошибка: {e.Message}";
         }
+    }
+
+    void ShowLobbyScreen() // новый метод
+    {
+        createJoinPanel.SetActive(false);
+        lobbyScreenPanel.SetActive(true);
     }
 }
