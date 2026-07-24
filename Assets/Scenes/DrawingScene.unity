@@ -128,26 +128,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1160073938}
-  - component: {fileID: 1160073937}
+  - component: {fileID: 1160073939}
   m_Layer: 0
-  m_Name: DrawingGame
+  m_Name: CurrentGame
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1160073937
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1160073936}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9e9cbc84d143146739e90ee3415ebbbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DrawingGame
 --- !u!4 &1160073938
 Transform:
   m_ObjectHideFlags: 0
@@ -163,6 +151,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1160073939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1160073936}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fef2f4042b364707a6f2befc143a830, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BudgetMinigame
+  targetBudget: 500
+  tolerance: 50
+  sliderCount: 5
+  minMultiplier: 0.5
+  maxMultiplier: 3
+  influenceMatrix: []
+  maxInfluence: 3
+  minInfluence: 0.5
 --- !u!1 &1208274500
 GameObject:
   m_ObjectHideFlags: 0
