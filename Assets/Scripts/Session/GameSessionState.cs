@@ -12,6 +12,11 @@ public class GameSessionState : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    public NetworkVariable<float> TimeRemaining = new NetworkVariable<float>(
+        0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    [SerializeField] private float roundDuration = 120f; // это поле НА ПРЕФАБЕ — можно назначать в инспекторе Prefab-ассета
+
     void Awake()
     {
         Instance = this;
@@ -22,10 +27,25 @@ public class GameSessionState : NetworkBehaviour
         Phase.OnValueChanged += (oldPhase, newPhase) =>
         {
             Debug.Log($"[Session] Phase changed: {oldPhase} -> {newPhase}");
+            if (IsServer && newPhase == SessionPhase.InGame)
+            {
+                TimeRemaining.Value = roundDuration;
+            }
         };
     }
 
-    // вызывается только сервером
+    void Update()
+    {
+        if (!IsServer || Phase.Value != SessionPhase.InGame) return;
+
+        TimeRemaining.Value -= Time.deltaTime;
+        if (TimeRemaining.Value <= 0f)
+        {
+            TimeRemaining.Value = 0f;
+            SetPhase(SessionPhase.Results);
+        }
+    }
+
     public void SetPhase(SessionPhase newPhase)
     {
         if (!IsServer) return;

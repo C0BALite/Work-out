@@ -87,7 +87,7 @@ public class LobbyPlayerManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void StartGameServerRpc()
     {
-        if (!AllNonHostPlayersReady()) return; // защита от читерского вызова с клиента
-        GameSessionState.Instance.SetPhase(SessionPhase.RoleSelect); // или InGame, зависит от вашего флоу
+        if (!AllNonHostPlayersReady()) return;
+        GameSessionState.Instance.SetPhase(SessionPhase.InGame); // было RoleSelect
     }
 }

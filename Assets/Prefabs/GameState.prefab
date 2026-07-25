@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7536964177520246450}
   - component: {fileID: 6720785418198723534}
   - component: {fileID: 7911766623876671639}
+  - component: {fileID: 3105407971246350502}
   - component: {fileID: 659931764763195965}
   - component: {fileID: 4353636909484083208}
   m_Layer: 0
@@ -47,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 544516218
+  GlobalObjectIdHash: 3196499258
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -78,6 +79,20 @@ MonoBehaviour:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
+--- !u!114 &3105407971246350502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5114611144098632104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9a366f78fef33949a1400f1b811d6f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PuzzleSpawner
+  ShowTopMostFoldoutHeaderGroup: 1
+  documentApprovalPuzzlePrefab: {fileID: 3259596439588562102, guid: b65306ceaff5bbc4bae5b0499fc19c93, type: 3}
 --- !u!114 &659931764763195965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,6 +111,12 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  TimeRemaining:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  roundDuration: 120
 --- !u!114 &4353636909484083208
 MonoBehaviour:
   m_ObjectHideFlags: 0
