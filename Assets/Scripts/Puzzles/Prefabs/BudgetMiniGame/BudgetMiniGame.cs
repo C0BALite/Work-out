@@ -29,6 +29,12 @@ public class BudgetMiniGame : MonoBehaviour
     public TextMeshProUGUI statusText;
     [TextArea] public string hintText = "Настройте бюджет, чтобы попасть в зелёную зону...";
 
+    // === ULTIMATE SYSTEM ===
+    [Header("Ultimate System")]
+    public int playerId = 1; // Маркетолог
+    private PlayerState playerState;
+    // =======================
+
     public event Action OnWin;
 
     private bool hasWon = false;
@@ -62,6 +68,10 @@ public class BudgetMiniGame : MonoBehaviour
 
         PositionTargetZone();
         UpdateUI();
+
+        // === ULTIMATE SYSTEM ===
+        playerState = PlayerManager.Instance?.GetState(playerId);
+        // =======================
 
         Debug.Log($"=== BUDGET PUZZLE === Цель: {targetMin:F0}–{targetMax:F0} | Старт: {GetTotalBudget():F0}");
     }
@@ -117,10 +127,8 @@ public class BudgetMiniGame : MonoBehaviour
         float delta = newValue - lastValues[changedIndex];
         if (Mathf.Abs(delta) < 0.01f) return;
 
-        // Старый бюджет
         float oldBudget = CalculateBudgetFromValues(lastValues);
 
-        // Вычисляем, куда сдвинутся остальные
         float[] proposed = new float[4];
         for (int i = 0; i < 4; i++) proposed[i] = lastValues[i];
         proposed[changedIndex] = newValue;
@@ -133,7 +141,6 @@ public class BudgetMiniGame : MonoBehaviour
             proposed[i] = Mathf.Clamp(lastValues[i] + change, sliders[i].slider.minValue, sliders[i].slider.maxValue);
         }
 
-        // Проверяем направления ВСЕХ сдвинувшихся
         bool allRight = true;
         bool allLeft = true;
         bool anyMoved = false;
@@ -148,10 +155,10 @@ public class BudgetMiniGame : MonoBehaviour
             }
         }
 
-        // Бюджет ПОСЛЕ связей
+        // === ВОТ ЭТА СТРОКА БЫЛА ПРОПУЩЕНА ===
         float newBudget = CalculateBudgetFromValues(proposed);
+        // =======================================
 
-        // ПРАВИЛО: все в одну сторону → бюджет тоже туда
         bool applyLinks = true;
         if (anyMoved)
         {
@@ -161,7 +168,6 @@ public class BudgetMiniGame : MonoBehaviour
 
         if (applyLinks)
         {
-            // Применяем связи к другим слайдерам тихо
             for (int i = 0; i < 4; i++)
             {
                 if (i == changedIndex) continue;
@@ -170,9 +176,7 @@ public class BudgetMiniGame : MonoBehaviour
                 lastValues[i] = proposed[i];
             }
         }
-        // Если НЕ applyLinks — связи не применяем, остальные стоят на месте
 
-        // Текущий слайдер обновляем в любом случае (он уже установлен Unity UI)
         lastValues[changedIndex] = newValue;
 
         UpdateUI();
@@ -243,6 +247,11 @@ public class BudgetMiniGame : MonoBehaviour
                 statusText.text = "🎉 БЮДЖЕТ ИДЕАЛЬНО СБАЛАНСИРОВАН!";
                 statusText.color = new Color(0.2f, 0.9f, 0.3f);
             }
+
+            // === ULTIMATE SYSTEM: правильное действие ===
+            GameEvents.ReportCorrectAction(playerId);
+            // ============================================
+
             OnWin?.Invoke();
         }
         else

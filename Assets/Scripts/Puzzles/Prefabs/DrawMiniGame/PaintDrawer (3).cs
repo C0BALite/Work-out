@@ -9,6 +9,13 @@ public class PaintDrawer : MonoBehaviour
     [SerializeField] private int brushSize = 3;
     [SerializeField] private Color backgroundColor = Color.white;
 
+    // === ULTIMATE SYSTEM ===
+    [Header("Ultimate System")]
+    public int playerId = 0; // Дизайнер
+    private PlayerState playerState;
+    private bool hasDrawnThisStroke = false;
+    // =======================
+
     private RawImage rawImage;
     private Texture2D texture;
     private RectTransform rectTransform;
@@ -29,6 +36,10 @@ public class PaintDrawer : MonoBehaviour
 
         ClearTexture();
         rawImage.texture = texture;
+
+        // === ULTIMATE SYSTEM ===
+        playerState = PlayerManager.Instance?.GetState(playerId);
+        // =======================
     }
 
     void Update()
@@ -39,6 +50,12 @@ public class PaintDrawer : MonoBehaviour
         if (mouse.leftButton.isPressed)
         {
             Vector2 screenPos = mouse.position.ReadValue();
+
+            // === ULTIMATE SYSTEM: инверсия мыши по Y ===
+            if (playerState != null && playerState.IsMouseInverted)
+                screenPos.y = Screen.height - screenPos.y;
+            // ============================================
+
             Vector2 localPos;
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 rectTransform, screenPos, null, out localPos))
@@ -59,6 +76,13 @@ public class PaintDrawer : MonoBehaviour
         }
         else
         {
+            // === ULTIMATE SYSTEM: репортим при завершении штриха ===
+            if (hasDrawnThisStroke)
+            {
+                GameEvents.ReportCorrectAction(playerId);
+                hasDrawnThisStroke = false;
+            }
+            // =======================================================
             lastTexPos = null;
         }
 
@@ -69,45 +93,14 @@ public class PaintDrawer : MonoBehaviour
         }
     }
 
-    public void SetBrushMode()
-    {
-        isEraser = false;
-    }
+    public void SetBrushMode() => isEraser = false;
+    public void SetEraserMode() => isEraser = true;
 
-    public void SetEraserMode()
-    {
-        isEraser = true;
-    }
-
-    public void SetColorBlack()
-    {
-        brushColor = Color.black;
-        isEraser = false;
-    }
-
-    public void SetColorRed()
-    {
-        brushColor = Color.red;
-        isEraser = false;
-    }
-
-    public void SetColorBlue()
-    {
-        brushColor = Color.blue;
-        isEraser = false;
-    }
-
-    public void SetColorGreen()
-    {
-        brushColor = Color.green;
-        isEraser = false;
-    }
-
-    public void SetColorYellow()
-    {
-        brushColor = new Color(1f, 0.92f, 0.016f, 1f);
-        isEraser = false;
-    }
+    public void SetColorBlack()  { brushColor = Color.black; isEraser = false; }
+    public void SetColorRed()    { brushColor = Color.red; isEraser = false; }
+    public void SetColorBlue()   { brushColor = Color.blue; isEraser = false; }
+    public void SetColorGreen()  { brushColor = Color.green; isEraser = false; }
+    public void SetColorYellow() { brushColor = new Color(1f, 0.92f, 0.016f, 1f); isEraser = false; }
 
     void ClearTexture()
     {
@@ -167,6 +160,9 @@ public class PaintDrawer : MonoBehaviour
                 }
             }
         }
+        // === ULTIMATE SYSTEM ===
+        hasDrawnThisStroke = true;
+        // =======================
         needsApply = true;
     }
 }
