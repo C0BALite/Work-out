@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
 public class PuzzleSpawner : NetworkBehaviour
 {
-    [SerializeField] private GameObject documentApprovalPuzzlePrefab; // пока одна головоломка
+    [SerializeField] private List<GameObject> puzzlePrefabs; // по одному Prefab-у на роль
 
+    private List<NetworkObject> spawnedPuzzles = new List<NetworkObject>();
     private bool spawned;
 
     public override void OnNetworkSpawn()
@@ -15,24 +17,26 @@ public class PuzzleSpawner : NetworkBehaviour
 
     void OnPhaseChanged(SessionPhase oldPhase, SessionPhase newPhase)
     {
-        Debug.Log($"[PuzzleSpawner] Phase changed to {newPhase}, IsServer={IsServer}, spawned={spawned}");
-
         if (newPhase == SessionPhase.InGame && !spawned)
         {
-            Debug.Log("[PuzzleSpawner] Spawning puzzle prefab: " + documentApprovalPuzzlePrefab);
-            var obj = Instantiate(documentApprovalPuzzlePrefab);
-            obj.GetComponent<NetworkObject>().Spawn();
+            foreach (var prefab in puzzlePrefabs)
+            {
+                var obj = Instantiate(prefab);
+                var netObj = obj.GetComponent<NetworkObject>();
+                netObj.Spawn();
+                spawnedPuzzles.Add(netObj);
+            }
             spawned = true;
         }
         else if (newPhase == SessionPhase.Lobby)
         {
+            foreach (var netObj in spawnedPuzzles)
+            {
+                if (netObj != null && netObj.IsSpawned)
+                    netObj.Despawn(true);
+            }
+            spawnedPuzzles.Clear();
             spawned = false;
         }
-    }
-
-    void SpawnPuzzles()
-    {
-        var obj = Instantiate(documentApprovalPuzzlePrefab);
-        obj.GetComponent<NetworkObject>().Spawn();
     }
 }

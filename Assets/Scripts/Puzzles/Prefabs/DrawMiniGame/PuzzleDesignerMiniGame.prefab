@@ -1709,6 +1709,7 @@ GameObject:
   - component: {fileID: 4596893803635344436}
   - component: {fileID: 4170939278429211527}
   - component: {fileID: 3622025281538586133}
+  - component: {fileID: 7000391798741416262}
   m_Layer: 0
   m_Name: DrawingCamera
   m_TagString: Untagged
@@ -1790,6 +1791,50 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8316505176135330190}
   m_Enabled: 0
+--- !u!114 &7000391798741416262
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8316505176135330190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1 &8402983698408171351
 GameObject:
   m_ObjectHideFlags: 0
@@ -1984,6 +2029,8 @@ MonoBehaviour:
   brushColor: {r: 0, g: 0, b: 0, a: 1}
   brushSize: 3
   backgroundColor: {r: 1, g: 1, b: 1, a: 1}
+  playerId: 0
+  doneButton: {fileID: 0}
 --- !u!1 &8640989549609512750
 GameObject:
   m_ObjectHideFlags: 0
@@ -2129,6 +2176,8 @@ GameObject:
   - component: {fileID: 7453311911864929337}
   - component: {fileID: 538205746124559503}
   - component: {fileID: 6195366454193849909}
+  - component: {fileID: 5139047016784777205}
+  - component: {fileID: 4725253683105112868}
   m_Layer: 5
   m_Name: PuzzleDesignerMiniGame
   m_TagString: Untagged
@@ -2220,6 +2269,48 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &5139047016784777205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8707405693252404265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 751037839
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &4725253683105112868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8707405693252404265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0522bd40d0622cb4489dc71d8b4a0b63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PuzzleActivator
+  ShowTopMostFoldoutHeaderGroup: 1
+  requiredRole: 3
+  puzzleRoot: {fileID: 8402983698408171351}
+  puzzleBehaviour: {fileID: 550721496897001277}
 --- !u!1 &8753195637262960447
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,11 +4,12 @@ using UnityEngine;
 public class PuzzleActivator : NetworkBehaviour
 {
     [SerializeField] private GameRole requiredRole;
-    [SerializeField] private GameObject puzzleRoot;   // Canvas с самой головоломкой
-    [SerializeField] private MonoBehaviour puzzleBehaviour; // DocumentApprovalGame и т.п.
+    [SerializeField] private GameObject puzzleRoot;
+    [SerializeField] private MonoBehaviour puzzleBehaviour;
 
     private IPuzzle puzzle;
-    private bool activated;
+    private bool isMine;
+    private bool reported; // новое
 
     void Awake()
     {
@@ -18,12 +19,10 @@ public class PuzzleActivator : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        bool isMyRole = RoleAssignmentManager.Instance.GetMyRole() == requiredRole;
+        isMine = RoleAssignmentManager.Instance.GetMyRole() == requiredRole;
 
-        if (isMyRole)
+        if (isMine)
         {
-            // локально переносим в слот-канвас — это чисто визуальная операция,
-            // не синхронизируется через NGO, каждый клиент делает это независимо
             puzzleRoot.transform.SetParent(PuzzleSlotCanvas.Instance.SlotRoot, false);
 
             var rt = puzzleRoot.GetComponent<RectTransform>();
@@ -34,12 +33,34 @@ public class PuzzleActivator : NetworkBehaviour
 
             puzzleRoot.SetActive(true);
             puzzle.Begin();
-            activated = true;
         }
         else
         {
-            // не наша роль — этот экземпляр на этом клиенте просто ничего не показывает
             puzzleRoot.SetActive(false);
         }
+    }
+
+    void Update() // новое
+    {
+        if (!isMine || reported || GameSessionState.Instance == null) return;
+
+        bool roundEnded = GameSessionState.Instance.Phase.Value == SessionPhase.Results;
+
+        if (puzzle.IsCompleted || roundEnded)
+        {
+            if (roundEnded && !puzzle.IsCompleted) puzzle.ForceEnd();
+
+            float timeLeftRatio = Mathf.Clamp01(
+                GameSessionState.Instance.TimeRemaining.Value / GameSessionState.Instance.RoundDuration);
+
+            ReportResultServerRpc(requiredRole, puzzle.GetLocalScore(), timeLeftRatio);
+            reported = true;
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    void ReportResultServerRpc(GameRole role, float score, float timeLeftRatio, ServerRpcParams rpcParams = default)
+    {
+        GameSessionState.Instance.RegisterResult(role, score, timeLeftRatio, rpcParams.Receive.SenderClientId);
     }
 }

@@ -90,4 +90,16 @@ public class LobbyPlayerManager : NetworkBehaviour
         if (!AllNonHostPlayersReady()) return;
         GameSessionState.Instance.SetPhase(SessionPhase.InGame); // было RoleSelect
     }
+
+    public void ResetAllReady()
+    {
+        if (!IsServer) return;
+
+        for (int i = 0; i < Players.Count; i++)
+        {
+            var p = Players[i];
+            p.IsReady = false;
+            Players[i] = p;
+        }
+    }
 }

@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(RawImage))]
-public class PaintDrawer : MonoBehaviour
+public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
 {
     [SerializeField] private Color brushColor = Color.black;
     [SerializeField] private int brushSize = 3;
@@ -15,6 +15,10 @@ public class PaintDrawer : MonoBehaviour
     private PlayerState playerState;
     private bool hasDrawnThisStroke = false;
     // =======================
+
+    [Header("Puzzle Completion")]
+    [SerializeField] private Button doneButton; // новое — добавить в Prefab
+    public bool IsCompleted { get; private set; } // новое
 
     private RawImage rawImage;
     private Texture2D texture;
@@ -40,6 +44,8 @@ public class PaintDrawer : MonoBehaviour
         // === ULTIMATE SYSTEM ===
         playerState = PlayerManager.Instance?.GetState(playerId);
         // =======================
+
+        if (doneButton != null) doneButton.onClick.AddListener(OnDoneClicked); // новое
     }
 
     void Update()
@@ -164,5 +170,22 @@ public class PaintDrawer : MonoBehaviour
         hasDrawnThisStroke = true;
         // =======================
         needsApply = true;
+    }
+    public void Begin() // новое
+    {
+        IsCompleted = false;
+        if (texture != null) ClearTexture();
+    }
+
+    public void ForceEnd() // новое
+    {
+        IsCompleted = true;
+    }
+
+    public float GetLocalScore() => IsCompleted ? 1f : 0f; // новое
+
+    void OnDoneClicked() // новое
+    {
+        IsCompleted = true;
     }
 }

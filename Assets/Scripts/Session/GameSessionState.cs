@@ -15,11 +15,15 @@ public class GameSessionState : NetworkBehaviour
     public NetworkVariable<float> TimeRemaining = new NetworkVariable<float>(
         0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    [SerializeField] private float roundDuration = 120f; // это поле НА ПРЕФАБЕ — можно назначать в инспекторе Prefab-ассета
+    public NetworkList<PuzzleResultData> Results; // новое
+
+    [SerializeField] private float roundDuration = 120f;
+    public float RoundDuration => roundDuration; // новое
 
     void Awake()
     {
         Instance = this;
+        Results = new NetworkList<PuzzleResultData>(); // новое
     }
 
     public override void OnNetworkSpawn()
@@ -50,5 +54,35 @@ public class GameSessionState : NetworkBehaviour
     {
         if (!IsServer) return;
         Phase.Value = newPhase;
+    }
+
+    // новое
+    public void RegisterResult(GameRole role, float score, float timeLeftRatio, ulong clientId)
+    {
+        if (!IsServer) return;
+
+        for (int i = 0; i < Results.Count; i++)
+            if (Results[i].ClientId == clientId) return;
+
+        float multiplier = ScoringUtils.ComputeMultiplier(timeLeftRatio, score);
+        int currency = Mathf.RoundToInt(100f * multiplier);
+
+        Results.Add(new PuzzleResultData
+        {
+            ClientId = clientId,
+            Role = role,
+            Score = score,
+            Multiplier = multiplier,
+            CurrencyEarned = currency
+        });
+    }
+
+    // новое
+    [ServerRpc(RequireOwnership = false)]
+    public void ReturnToLobbyServerRpc()
+    {
+        Results.Clear();
+        LobbyPlayerManager.Instance.ResetAllReady();
+        SetPhase(SessionPhase.Lobby);
     }
 }

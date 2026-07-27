@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 
-public class BudgetMiniGame : MonoBehaviour
+public class BudgetMiniGame : MonoBehaviour, IPuzzle
 {
     [Serializable]
     public class BudgetSlider
@@ -34,6 +34,11 @@ public class BudgetMiniGame : MonoBehaviour
     public int playerId = 1; // Маркетолог
     private PlayerState playerState;
     // =======================
+
+    [Header("Puzzle Completion")]
+    [SerializeField] private Button submitButton; // новое — добавить в Prefab
+
+    public bool IsCompleted { get; private set; } // новое
 
     public event Action OnWin;
 
@@ -73,9 +78,33 @@ public class BudgetMiniGame : MonoBehaviour
         playerState = PlayerManager.Instance?.GetState(playerId);
         // =======================
 
+        if (submitButton != null) submitButton.onClick.AddListener(OnSubmitClicked); // новое
+
         Debug.Log($"=== BUDGET PUZZLE === Цель: {targetMin:F0}–{targetMax:F0} | Старт: {GetTotalBudget():F0}");
     }
+    void OnSubmitClicked() // новое
+    {
+        TryWin();
+        if (hasWon) IsCompleted = true;
+    }
+    public void Begin() // новое
+    {
+        IsCompleted = false;
+        hasWon = false;
+        wasInZone = false;
+        GeneratePuzzle();
+        if (budgetFill != null) budgetFill.color = barColor;
+        if (statusText != null) statusText.text = hintText;
+        PositionTargetZone();
+        UpdateUI();
+    }
 
+    public void ForceEnd() // новое
+    {
+        IsCompleted = true;
+    }
+
+    public float GetLocalScore() => hasWon ? 1f : 0f; // новое
     void GeneratePuzzle()
     {
         for (int i = 0; i < 4; i++)
@@ -155,10 +184,7 @@ public class BudgetMiniGame : MonoBehaviour
             }
         }
 
-        // === ВОТ ЭТА СТРОКА БЫЛА ПРОПУЩЕНА ===
         float newBudget = CalculateBudgetFromValues(proposed);
-        // =======================================
-
         bool applyLinks = true;
         if (anyMoved)
         {
@@ -201,7 +227,7 @@ public class BudgetMiniGame : MonoBehaviour
         bool nowInZone = IsInTargetZone();
         if (nowInZone && !wasInZone)
         {
-            Debug.Log($"[BudgetGame] ✅ Бюджет {total:F0} попал в зелёную зону {targetMin:F0}–{targetMax:F0}!");
+            Debug.Log($"[BudgetGame] Бюджет {total:F0} попал в зелёную зону {targetMin:F0}–{targetMax:F0}!");
         }
         wasInZone = nowInZone;
     }
@@ -244,7 +270,7 @@ public class BudgetMiniGame : MonoBehaviour
             hasWon = true;
             if (statusText != null)
             {
-                statusText.text = "🎉 БЮДЖЕТ ИДЕАЛЬНО СБАЛАНСИРОВАН!";
+                statusText.text = " БЮДЖЕТ ИДЕАЛЬНО СБАЛАНСИРОВАН!";
                 statusText.color = new Color(0.2f, 0.9f, 0.3f);
             }
 
@@ -261,12 +287,12 @@ public class BudgetMiniGame : MonoBehaviour
             {
                 if (total < targetMin)
                 {
-                    statusText.text = "❌ НЕДОБОР. Бюджет слишком мал.";
+                    statusText.text = " НЕДОБОР. Бюджет слишком мал.";
                     statusText.color = new Color(1f, 0.3f, 0.3f);
                 }
                 else
                 {
-                    statusText.text = "❌ ПЕРЕРАСХОД. Бюджет превышен.";
+                    statusText.text = " ПЕРЕРАСХОД. Бюджет превышен.";
                     statusText.color = new Color(1f, 0.2f, 0.2f);
                 }
             }
