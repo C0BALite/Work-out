@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
 [RequireComponent(typeof(RawImage))]
 public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
@@ -9,12 +10,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
     [SerializeField] private int brushSize = 3;
     [SerializeField] private Color backgroundColor = Color.white;
 
-    // === ULTIMATE SYSTEM ===
-    [Header("Ultimate System")]
-    public int playerId = 0; // Дизайнер
-    private PlayerState playerState;
-    private bool hasDrawnThisStroke = false;
-    // =======================
+    
 
     [Header("Puzzle Completion")]
     [SerializeField] private Button doneButton; // новое — добавить в Prefab
@@ -41,9 +37,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
         ClearTexture();
         rawImage.texture = texture;
 
-        // === ULTIMATE SYSTEM ===
-        playerState = PlayerManager.Instance?.GetState(playerId);
-        // =======================
+        
 
         if (doneButton != null) doneButton.onClick.AddListener(OnDoneClicked); // новое
     }
@@ -57,10 +51,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
         {
             Vector2 screenPos = mouse.position.ReadValue();
 
-            // === ULTIMATE SYSTEM: инверсия мыши по Y ===
-            if (playerState != null && playerState.IsMouseInverted)
-                screenPos.y = Screen.height - screenPos.y;
-            // ============================================
+            
 
             Vector2 localPos;
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -82,13 +73,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
         }
         else
         {
-            // === ULTIMATE SYSTEM: репортим при завершении штриха ===
-            if (hasDrawnThisStroke)
-            {
-                GameEvents.ReportCorrectAction(playerId);
-                hasDrawnThisStroke = false;
-            }
-            // =======================================================
+            
             lastTexPos = null;
         }
 
@@ -166,9 +151,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
                 }
             }
         }
-        // === ULTIMATE SYSTEM ===
-        hasDrawnThisStroke = true;
-        // =======================
+        
         needsApply = true;
     }
     public void Begin() // новое
@@ -180,6 +163,17 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
     public void ForceEnd() // новое
     {
         IsCompleted = true;
+    }
+
+    // Когда игрок сделал правильное действие:
+    private void OnCorrectAction()
+    {
+        // Получаем NetworkObject текущего игрока
+        // (зависит от вашей реализации, как определяется "текущий игрок")
+        ulong myId = NetworkManager.Singleton.LocalClientId;
+
+        // Сообщаем системе событий
+        MiniGameEventSystem.Instance.ReportCorrectAction(myId);
     }
 
     public float GetLocalScore() => IsCompleted ? 1f : 0f; // новое

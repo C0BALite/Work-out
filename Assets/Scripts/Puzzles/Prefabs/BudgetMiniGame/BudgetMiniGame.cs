@@ -29,11 +29,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     public TextMeshProUGUI statusText;
     [TextArea] public string hintText = "Настройте бюджет, чтобы попасть в зелёную зону...";
 
-    // === ULTIMATE SYSTEM ===
-    [Header("Ultimate System")]
-    public int playerId = 1; // Маркетолог
-    private PlayerState playerState;
-    // =======================
+   
 
     [Header("Puzzle Completion")]
     [SerializeField] private Button submitButton; // новое — добавить в Prefab
@@ -74,9 +70,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         PositionTargetZone();
         UpdateUI();
 
-        // === ULTIMATE SYSTEM ===
-        playerState = PlayerManager.Instance?.GetState(playerId);
-        // =======================
+        
 
         if (submitButton != null) submitButton.onClick.AddListener(OnSubmitClicked); // новое
 
@@ -274,9 +268,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
                 statusText.color = new Color(0.2f, 0.9f, 0.3f);
             }
 
-            // === ULTIMATE SYSTEM: правильное действие ===
-            GameEvents.ReportCorrectAction(playerId);
-            // ============================================
+            
 
             OnWin?.Invoke();
         }

@@ -35,11 +35,7 @@ public class DocumentApprovalGame : MonoBehaviour, IPuzzle
     [SerializeField] private float stampAnimationDelay = 0.8f;
     [SerializeField] private float feedbackDisplayTime = 1.2f;
 
-    // === ULTIMATE SYSTEM ===
-    [Header("Ultimate System")]
-    public int playerId = 2; // Копирайтер
-    private PlayerState playerState;
-    // =======================
+    
 
     private (string request, bool shouldApprove)[] budgetRequests;
     private bool shouldApproveCurrent;
@@ -59,16 +55,12 @@ public class DocumentApprovalGame : MonoBehaviour, IPuzzle
         stampImage.gameObject.SetActive(false);
         signatureImage.gameObject.SetActive(false);
 
-        // === ULTIMATE SYSTEM ===
-        // Не вызываем здесь — PlayerManager может ещё не быть
-        // =======================
+        
     }
 
     void Start()
     {
-        // === ULTIMATE SYSTEM ===
-        playerState = PlayerManager.Instance?.GetState(playerId);
-        // =======================
+       
     }
 
     public void Begin()
@@ -191,9 +183,7 @@ public class DocumentApprovalGame : MonoBehaviour, IPuzzle
         {
             correctCount++;
 
-            // === ULTIMATE SYSTEM: правильное действие ===
-            GameEvents.ReportCorrectAction(playerId);
-            // ============================================
+           
         }
 
         feedbackText.text = wasCorrect ? "Верно!" : "Ошибка!";

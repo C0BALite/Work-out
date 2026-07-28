@@ -1,1 +1,0 @@
-public enum PlayerRole { Designer, Marketer, Copywriter }
