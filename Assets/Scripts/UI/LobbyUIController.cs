@@ -13,10 +13,20 @@ public class LobbyUIController : MonoBehaviour
     [SerializeField] private GameObject createJoinPanel;   // новое поле
     [SerializeField] private GameObject lobbyScreenPanel;  // новое поле
 
+#if UNITY_EDITOR
+    [Header("Debug (только редактор)")]
+    [SerializeField] private Button debugJoinButton; // новое — подключение по коду последнего созданного лобби без ручного ввода, для тестов с несколькими ParrelSync-клонами
+#endif
+
     void Start()
     {
         createButton.onClick.AddListener(OnCreateClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
+
+#if UNITY_EDITOR
+        if (debugJoinButton != null)
+            debugJoinButton.onClick.AddListener(OnDebugJoinClicked);
+#endif
     }
 
     async void OnCreateClicked()
@@ -60,4 +70,29 @@ public class LobbyUIController : MonoBehaviour
         createJoinPanel.SetActive(false);
         lobbyScreenPanel.SetActive(true);
     }
+
+#if UNITY_EDITOR
+    async void OnDebugJoinClicked()
+    {
+        string code = SessionManager.DebugReadLastLobbyCode();
+        if (string.IsNullOrEmpty(code))
+        {
+            statusText.text = "Нет сохранённого кода — сначала создайте лобби в одном из окон";
+            return;
+        }
+
+        statusText.text = $"Debug Join по коду {code}...";
+        try
+        {
+            await SessionManager.Instance.JoinLobbyAsync(code);
+            statusText.text = "Подключено!";
+
+            ShowLobbyScreen();
+        }
+        catch (System.Exception e)
+        {
+            statusText.text = $"Ошибка: {e.Message}";
+        }
+    }
+#endif
 }

@@ -181,5 +181,6 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
     void OnDoneClicked() // новое
     {
         IsCompleted = true;
+        OnCorrectAction();
     }
 }

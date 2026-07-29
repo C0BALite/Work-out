@@ -3,14 +3,21 @@ using UnityEngine;
 
 public class LobbyPlayerManager : NetworkBehaviour
 {
+    [SerializeField] private GameObject playerAbilityPrefab; // новое — UltimateSystem + DebuffReceiver
     public static LobbyPlayerManager Instance { get; private set; }
 
     public NetworkList<LobbyPlayerData> Players;
 
-    void Awake()
+    void OnClientConnected(ulong clientId)
     {
-        Instance = this;
-        Players = new NetworkList<LobbyPlayerData>();
+        Debug.Log($"[LobbyPlayerManager] OnClientConnected fired for clientId={clientId}");
+        if (clientId == NetworkManager.Singleton.LocalClientId)
+        {
+            Debug.Log("[LobbyPlayerManager] Skipped — this is the host itself");
+            return;
+        }
+        AddPlayer(clientId);
+        SpawnPlayerAbilityObject(clientId);
     }
 
     public override void OnNetworkSpawn()
@@ -20,15 +27,25 @@ public class LobbyPlayerManager : NetworkBehaviour
             NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
             NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-            // сам хост тоже игрок — добавляем сразу
             AddPlayer(NetworkManager.Singleton.LocalClientId);
+            SpawnPlayerAbilityObject(NetworkManager.Singleton.LocalClientId); // новое — и для хоста тоже
         }
     }
 
-    void OnClientConnected(ulong clientId)
+    void SpawnPlayerAbilityObject(ulong clientId)
     {
-        if (clientId == NetworkManager.Singleton.LocalClientId) return; // хост уже добавлен
-        AddPlayer(clientId);
+        Debug.Log($"[LobbyPlayerManager] SpawnPlayerAbilityObject CALLED with clientId={clientId}, LocalClientId={NetworkManager.Singleton.LocalClientId}");
+
+        var obj = Instantiate(playerAbilityPrefab);
+        var netObj = obj.GetComponentInChildren<NetworkObject>();
+        netObj.SpawnAsPlayerObject(clientId);
+
+        Debug.Log($"[LobbyPlayerManager] Spawned for clientId={clientId}, OwnerClientId={netObj.OwnerClientId}, IsSpawned={netObj.IsSpawned}");
+    }
+    void Awake()
+    {
+        Instance = this;
+        Players = new NetworkList<LobbyPlayerData>();
     }
 
     void OnClientDisconnected(ulong clientId)

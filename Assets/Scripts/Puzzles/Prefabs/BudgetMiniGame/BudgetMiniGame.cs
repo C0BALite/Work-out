@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using Unity.Netcode;
 
 public class BudgetMiniGame : MonoBehaviour, IPuzzle
 {
@@ -79,7 +80,11 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     void OnSubmitClicked() // новое
     {
         TryWin();
-        if (hasWon) IsCompleted = true;
+        if (hasWon)
+        {
+            IsCompleted = true;
+            MiniGameEventSystem.Instance.ReportCorrectAction(NetworkManager.Singleton.LocalClientId);
+        }
     }
     public void Begin() // новое
     {

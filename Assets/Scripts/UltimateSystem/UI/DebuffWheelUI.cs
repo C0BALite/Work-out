@@ -1,24 +1,18 @@
-using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using System.Collections.Generic;
 using System.Collections;
 
-public class DebuffWheel : NetworkBehaviour
+public class DebuffWheelUI : MonoBehaviour
 {
-    public static DebuffWheel Instance { get; private set; }
+    public static DebuffWheelUI Instance { get; private set; }
 
-    [Header("Wheel Settings")]
-    [SerializeField] private List<DebuffData> allDebuffs = new List<DebuffData>();
     [SerializeField] private Transform wheelTransform;
     [SerializeField] private float spinDuration = 3f;
     [SerializeField] private AnimationCurve spinCurve;
 
-    [Header("UI")]
     [SerializeField] private GameObject wheelPanel;
     [SerializeField] private TMP_Text resultText;
-    [SerializeField] private TargetSelectionUI targetSelectionUI; // новое
+    [SerializeField] private TargetSelectionUI targetSelectionUI;
 
     private UltimateSystem currentUser;
     private DebuffData selectedDebuff;
@@ -26,9 +20,7 @@ public class DebuffWheel : NetworkBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
         if (wheelPanel != null) wheelPanel.SetActive(false);
     }
 
@@ -46,7 +38,7 @@ public class DebuffWheel : NetworkBehaviour
     IEnumerator SpinWheel()
     {
         isSpinning = true;
-        selectedDebuff = GetRandomDebuff();
+        selectedDebuff = DebuffWheelNetwork.Instance.GetRandomDebuff();
 
         float elapsed = 0f;
         float startRotation = wheelTransform != null ? wheelTransform.rotation.eulerAngles.z : 0f;
@@ -73,13 +65,7 @@ public class DebuffWheel : NetworkBehaviour
 
         if (wheelPanel != null) wheelPanel.SetActive(false);
 
-        targetSelectionUI.Show(OnTargetChosen); // новое — вместо клика по игровому миру
-    }
-
-    DebuffData GetRandomDebuff()
-    {
-        if (allDebuffs == null || allDebuffs.Count == 0) return null;
-        return allDebuffs[Random.Range(0, allDebuffs.Count)];
+        targetSelectionUI.Show(OnTargetChosen);
     }
 
     void OnTargetChosen(ulong targetId)
@@ -94,29 +80,6 @@ public class DebuffWheel : NetworkBehaviour
             }
         }
 
-        ApplyDebuffServerRpc(selectedDebuff.DebuffId, targetId, currentUser.OwnerClientId);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    void ApplyDebuffServerRpc(int debuffId, ulong targetId, ulong casterId)
-    {
-        DebuffData debuff = allDebuffs.Find(d => d.DebuffId == debuffId);
-        if (debuff == null) return;
-
-        DebuffManager.Instance?.ApplyDebuff(debuff, targetId, casterId);
-
-        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(casterId, out var client))
-        {
-            var casterUlt = client.PlayerObject.GetComponent<UltimateSystem>();
-            casterUlt?.ResetUltimate();
-        }
-
-        NotifyDebuffAppliedClientRpc(debuffId, targetId, debuff.debuffName);
-    }
-
-    [ClientRpc]
-    void NotifyDebuffAppliedClientRpc(int debuffId, ulong targetId, string debuffName)
-    {
-        Debug.Log($"Дебаф {debuffName} применён к игроку {targetId}!");
+        DebuffWheelNetwork.Instance.ApplyDebuffServerRpc(selectedDebuff.DebuffId, targetId, currentUser.OwnerClientId);
     }
 }

@@ -12,6 +12,7 @@ public class UltimateSystem : NetworkBehaviour
     [SerializeField] private Slider ultimateBar;
     [SerializeField] private Button ultimateButton;
     [SerializeField] private GameObject debuffWheelPanel;
+    [SerializeField] private GameObject abilityCanvas; // корневой Canvas Prefab-а
 
     private NetworkVariable<float> ultimateValue = new NetworkVariable<float>(
         0f,
@@ -35,16 +36,28 @@ public class UltimateSystem : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsOwner && GetComponent<PlayerRole>() != null && GetComponent<PlayerRole>().IsBoss)
-        {
-            if (ultimateBar != null && ultimateBar.transform.parent != null)
-                ultimateBar.transform.parent.gameObject.SetActive(false);
-            enabled = false;
-        }
+        if (abilityCanvas != null)
+            abilityCanvas.SetActive(false); // новое — скрыт до начала InGame, актуальную видимость считаем в Update
     }
 
-    private void Update()
+    void Update()
     {
+        if (abilityCanvas != null)
+        {
+            // новое — весь canvas (бар, кнопка, блюр-панель, иконка замедления) виден только
+            // владельцу и только пока идёт раунд; вне InGame (лобби/выбор ролей/результаты) скрыт
+            bool inGame = GameSessionState.Instance != null
+                && GameSessionState.Instance.Phase.Value == SessionPhase.InGame;
+            abilityCanvas.SetActive(IsOwner && inGame);
+        }
+
+        if (IsOwner && ultimateBar != null && ultimateBar.transform.parent != null)
+        {
+            bool isBoss = RoleAssignmentManager.Instance != null
+                && RoleAssignmentManager.Instance.GetMyRole() == GameRole.Boss;
+            ultimateBar.transform.parent.gameObject.SetActive(!isBoss); // босс не участвует в ультimate
+        }
+
         if (IsServer && !isUltimateReady)
         {
             float newValue = ultimateValue.Value + (passiveFillRate * Time.deltaTime);
@@ -53,7 +66,6 @@ public class UltimateSystem : NetworkBehaviour
 
         UpdateUI();
     }
-
     private void OnUltimateValueChanged(float previousValue, float newValue)
     {
         if (newValue >= 100f && !isUltimateReady)
@@ -100,8 +112,8 @@ public class UltimateSystem : NetworkBehaviour
     {
         if (IsOwner)
         {
-            if (DebuffWheel.Instance != null)
-                DebuffWheel.Instance.ShowWheel(this);
+            if (DebuffWheelUI.Instance != null) // было DebuffWheel.Instance
+                DebuffWheelUI.Instance.ShowWheel(this);
         }
     }
 

@@ -5,4 +5,5 @@ public class ActiveDebuff
     public ulong CasterId;
     public float RemainingTime;
     public bool IsActive;
+    public IDebuffEffect Effect; // новое
 }

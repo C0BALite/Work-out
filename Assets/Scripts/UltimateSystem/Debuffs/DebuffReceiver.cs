@@ -13,24 +13,34 @@ public class DebuffReceiver : NetworkBehaviour
         if (slowIcon != null) slowIcon.SetActive(false);
     }
 
-    public void ApplyBlur()
+    // публичные методы вызываются на СЕРВЕРЕ (из ScreenBlurEffect/SlowEffect)
+    public void ApplyBlur() => ApplyBlurClientRpc();
+    public void RemoveBlur() => RemoveBlurClientRpc();
+    public void ApplySlow() => ApplySlowClientRpc();
+    public void RemoveSlow() => RemoveSlowClientRpc();
+
+    [ClientRpc]
+    void ApplyBlurClientRpc()
     {
         if (!IsOwner) return;
         if (blurPanel != null) blurPanel.SetActive(true);
     }
 
-    public void RemoveBlur()
+    [ClientRpc]
+    void RemoveBlurClientRpc()
     {
         if (!IsOwner) return;
         if (blurPanel != null) blurPanel.SetActive(false);
     }
 
-    public void ApplySlow()
+    [ClientRpc]
+    void ApplySlowClientRpc()
     {
         if (slowIcon != null) slowIcon.SetActive(true);
     }
 
-    public void RemoveSlow()
+    [ClientRpc]
+    void RemoveSlowClientRpc()
     {
         if (slowIcon != null) slowIcon.SetActive(false);
     }

@@ -116,6 +116,12 @@ playground.xcworkspace
 *.sln
 *.suo
 
+### macOS
+.DS_Store
+
+### JetBrains
+.idea/
+
 ### Windows
 # Windows thumbnail cache files
 Thumbs.db

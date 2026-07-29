@@ -14,6 +14,9 @@ GameObject:
   - component: {fileID: 3105407971246350502}
   - component: {fileID: 659931764763195965}
   - component: {fileID: 4353636909484083208}
+  - component: {fileID: 7387938358033714086}
+  - component: {fileID: 4931593044717834684}
+  - component: {fileID: 1913591959071374376}
   m_Layer: 0
   m_Name: GameState
   m_TagString: Untagged
@@ -48,7 +51,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3196499258
+  GlobalObjectIdHash: 268108363
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -75,6 +78,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyPlayerManager
   ShowTopMostFoldoutHeaderGroup: 1
+  playerAbilityPrefab: {fileID: 3181526645148407880, guid: ebd3d713b9aa3d9458e8d4124b0b322a, type: 3}
   Players:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -92,7 +96,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PuzzleSpawner
   ShowTopMostFoldoutHeaderGroup: 1
-  documentApprovalPuzzlePrefab: {fileID: 3259596439588562102, guid: b65306ceaff5bbc4bae5b0499fc19c93, type: 3}
+  puzzlePrefabs:
+  - {fileID: 8707405693252404265, guid: 57044c3c0a867104e9abb73395dbb685, type: 3}
+  - {fileID: 2712176287283519964, guid: 321f0ad86698e0b4f95746389f37325c, type: 3}
+  - {fileID: 3259596439588562102, guid: b65306ceaff5bbc4bae5b0499fc19c93, type: 3}
 --- !u!114 &659931764763195965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -116,7 +123,11 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  roundDuration: 120
+  Results:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+  roundDuration: 60
 --- !u!114 &4353636909484083208
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,3 +145,47 @@ MonoBehaviour:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
+--- !u!114 &7387938358033714086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5114611144098632104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76bc691673fbb7e49969f2405f4f5b79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebuffManager
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &4931593044717834684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5114611144098632104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c315e980caed07541a3d201ee2c5539c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MiniGameEventSystem
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &1913591959071374376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5114611144098632104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db3bd727cc821874fa48411e0143cbf1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebuffWheelNetwork
+  ShowTopMostFoldoutHeaderGroup: 1
+  allDebuffs:
+  - {fileID: 11400000, guid: d8f31963097826a4d9756852aabb9327, type: 2}
+  - {fileID: 11400000, guid: 94dcf6c05f8fb6948a407532ac5f1c26, type: 2}
+  - {fileID: 11400000, guid: cbd06d505f1e4984f8e10b797662e426, type: 2}
+  - {fileID: 11400000, guid: 83aab08f29988e54b9bfe851e6de0068, type: 2}

@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -46,8 +47,29 @@ public class SessionManager : MonoBehaviour
 
         stateObj.GetComponent<RoleAssignmentManager>().AssignBossToHost(NetworkManager.Singleton.LocalClientId);
 
+#if UNITY_EDITOR
+        DebugWriteLastLobbyCode(CurrentLobby.LobbyCode);
+#endif
+
         return CurrentLobby.LobbyCode; // это игрок сообщает друзьям
     }
+
+#if UNITY_EDITOR
+    // дебаг — только для локальных тестов с несколькими ParrelSync-клонами.
+    // Код последнего созданного лобби кладём в общий на всю машину файл (%TEMP%),
+    // чтобы остальные клоны могли подключиться кнопкой "Debug Join", не копируя код руками.
+    private static readonly string DebugLobbyCodePath = Path.Combine(Path.GetTempPath(), "workout_debug_lobby_code.txt");
+
+    private static void DebugWriteLastLobbyCode(string code)
+    {
+        File.WriteAllText(DebugLobbyCodePath, code);
+    }
+
+    public static string DebugReadLastLobbyCode()
+    {
+        return File.Exists(DebugLobbyCodePath) ? File.ReadAllText(DebugLobbyCodePath).Trim() : null;
+    }
+#endif
 
     public async Task JoinLobbyAsync(string lobbyCode)
     {

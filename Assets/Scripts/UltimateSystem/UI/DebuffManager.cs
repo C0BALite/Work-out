@@ -8,91 +8,59 @@ public class DebuffManager : NetworkBehaviour
     public static DebuffManager Instance { get; private set; }
 
     private Dictionary<ulong, List<ActiveDebuff>> activeDebuffs = new Dictionary<ulong, List<ActiveDebuff>>();
-    private Dictionary<int, IDebuffEffect> debuffEffects = new Dictionary<int, IDebuffEffect>();
 
-    private void Awake()
+    void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-    }
-
-    public override void OnNetworkSpawn()
-    {
-        RegisterDebuffEffects();
-    }
-
-    private void RegisterDebuffEffects()
-    {
-        // Здесь регистрируй свои дебафы по мере создания
-        // debuffEffects[someDebuff.DebuffId] = new SlowEffect();
     }
 
     public void ApplyDebuff(DebuffData debuffData, ulong targetId, ulong casterId)
     {
         if (!IsServer) return;
 
-        ActiveDebuff activeDebuff = new ActiveDebuff
+        IDebuffEffect effect = debuffData.effectKind switch
+        {
+            DebuffEffectKind.Blur => new ScreenBlurEffect(),
+            DebuffEffectKind.Slow => new SlowEffect(),
+            _ => null
+        };
+        if (effect == null) return;
+
+        var activeDebuff = new ActiveDebuff
         {
             Data = debuffData,
             TargetId = targetId,
             CasterId = casterId,
             RemainingTime = debuffData.duration,
-            IsActive = true
+            IsActive = true,
+            Effect = effect
         };
 
         if (!activeDebuffs.ContainsKey(targetId))
             activeDebuffs[targetId] = new List<ActiveDebuff>();
-
         activeDebuffs[targetId].Add(activeDebuff);
 
-        if (debuffEffects.TryGetValue(debuffData.DebuffId, out IDebuffEffect effect))
-        {
-            effect.Apply(targetId);
-        }
+        effect.Apply(targetId);
 
-        StartCoroutine(RemoveDebuffAfterDelay(debuffData.DebuffId, targetId, debuffData.duration));
-        SpawnVisualEffectClientRpc(debuffData.DebuffId, targetId);
+        StartCoroutine(RemoveDebuffAfterDelay(activeDebuff, debuffData.duration));
     }
 
-    private IEnumerator RemoveDebuffAfterDelay(int debuffId, ulong targetId, float delay)
+    IEnumerator RemoveDebuffAfterDelay(ActiveDebuff debuff, float delay)
     {
         yield return new WaitForSeconds(delay);
-        RemoveDebuff(debuffId, targetId);
+        RemoveDebuff(debuff);
     }
 
-    public void RemoveDebuff(int debuffId, ulong targetId)
+    void RemoveDebuff(ActiveDebuff debuff)
     {
         if (!IsServer) return;
-
-        if (activeDebuffs.ContainsKey(targetId))
+        if (activeDebuffs.TryGetValue(debuff.TargetId, out var list) && list.Contains(debuff))
         {
-            ActiveDebuff debuff = activeDebuffs[targetId].Find(d => d.Data.DebuffId == debuffId);
-            if (debuff != null)
-            {
-                if (debuffEffects.TryGetValue(debuffId, out IDebuffEffect effect))
-                    effect.Remove(targetId);
-
-                activeDebuffs[targetId].Remove(debuff);
-                RemoveVisualEffectClientRpc(debuffId, targetId);
-            }
+            debuff.Effect.Remove(debuff.TargetId);
+            list.Remove(debuff);
         }
-    }
-
-    [ClientRpc]
-    private void SpawnVisualEffectClientRpc(int debuffId, ulong targetId)
-    {
-        // Визуальный эффект спавним здесь
-    }
-
-    [ClientRpc]
-    private void RemoveVisualEffectClientRpc(int debuffId, ulong targetId)
-    {
-        // Убираем визуальный эффект
     }
 
     public bool HasDebuff(ulong playerId, int debuffId)

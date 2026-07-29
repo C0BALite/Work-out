@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.Netcode;
 
 public class DocumentApprovalGame : MonoBehaviour, IPuzzle
 {
@@ -182,8 +183,7 @@ public class DocumentApprovalGame : MonoBehaviour, IPuzzle
         if (wasCorrect)
         {
             correctCount++;
-
-           
+            MiniGameEventSystem.Instance.ReportCorrectAction(NetworkManager.Singleton.LocalClientId);
         }
 
         feedbackText.text = wasCorrect ? "Верно!" : "Ошибка!";

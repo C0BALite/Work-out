@@ -9,6 +9,7 @@ public class PuzzleActivator : NetworkBehaviour
 
     private IPuzzle puzzle;
     private bool isMine;
+    private bool roleResolved; // новое — защита от гонки: роль в RoleAssignmentManager.Assignments может ещё не реплицироваться в момент OnNetworkSpawn
     private bool reported; // новое
 
     void Awake()
@@ -19,7 +20,23 @@ public class PuzzleActivator : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        isMine = RoleAssignmentManager.Instance.GetMyRole() == requiredRole;
+        TryResolveRole();
+    }
+
+    void TryResolveRole()
+    {
+        if (roleResolved || RoleAssignmentManager.Instance == null) return;
+
+        GameRole myRole = RoleAssignmentManager.Instance.GetMyRole();
+        if (myRole == GameRole.None) return; // роль ещё не пришла по сети — попробуем в следующем кадре
+
+        bool wouldBeMine = myRole == requiredRole;
+        // новое — PuzzleSlotCanvas активируется GameFlowController при переходе в InGame;
+        // сетевой спавн головоломки у клиента иногда опережает этот локальный переход
+        if (wouldBeMine && PuzzleSlotCanvas.Instance == null) return;
+
+        roleResolved = true;
+        isMine = wouldBeMine;
 
         if (isMine)
         {
@@ -42,6 +59,12 @@ public class PuzzleActivator : NetworkBehaviour
 
     void Update() // новое
     {
+        if (!roleResolved)
+        {
+            TryResolveRole();
+            return;
+        }
+
         if (!isMine || reported || GameSessionState.Instance == null) return;
 
         bool roundEnded = GameSessionState.Instance.Phase.Value == SessionPhase.Results;
@@ -62,5 +85,10 @@ public class PuzzleActivator : NetworkBehaviour
     void ReportResultServerRpc(GameRole role, float score, float timeLeftRatio, ServerRpcParams rpcParams = default)
     {
         GameSessionState.Instance.RegisterResult(role, score, timeLeftRatio, rpcParams.Receive.SenderClientId);
+    }
+    public override void OnNetworkDespawn() // новое
+    {
+        if (puzzleRoot != null)
+            Destroy(puzzleRoot);
     }
 }

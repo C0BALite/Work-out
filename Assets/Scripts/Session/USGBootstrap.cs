@@ -16,7 +16,18 @@ public class UGSBootstrap : MonoBehaviour
         if (ClonesManager.IsClone())
         {
             string customArgument = ClonesManager.GetArgument();
-            string profileName = string.IsNullOrEmpty(customArgument) ? "Clone" : customArgument;
+            string profileName;
+            if (!string.IsNullOrEmpty(customArgument))
+            {
+                profileName = customArgument;
+            }
+            else
+            {
+                // рандомный профиль на каждый запуск клона — для локальных тестов с несколькими
+                // клиентами: без этого все клоны без ручного custom argument получали один и тот
+                // же профиль "Clone" и, соответственно, один PlayerId.
+                profileName = "Clone_" + System.Guid.NewGuid().ToString("N").Substring(0, 12);
+            }
             AuthenticationService.Instance.SwitchProfile(profileName);
         }
 #endif
