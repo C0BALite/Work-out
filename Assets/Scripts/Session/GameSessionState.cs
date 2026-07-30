@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,6 +21,10 @@ public class GameSessionState : NetworkBehaviour
     [SerializeField] private float roundDuration = 120f;
     public float RoundDuration => roundDuration; // новое
 
+    // новое — очки за правильные действия в текущем раунде, по клиенту.
+    // Только для подсчёта среднего бонуса боссу в конце раунда, сами +10 начисляются сразу.
+    private readonly Dictionary<ulong, int> _correctActionsThisRound = new Dictionary<ulong, int>();
+
     void Awake()
     {
         Instance = this;
@@ -35,7 +40,71 @@ public class GameSessionState : NetworkBehaviour
             {
                 TimeRemaining.Value = roundDuration;
             }
+
+            if (IsServer && newPhase == SessionPhase.Results) // новое — система очков
+            {
+                AwardRoundCompletionScores();
+            }
         };
+    }
+
+    // новое — система очков (отдельно от системы "валюты"/Results.CurrencyEarned выше)
+    public void RegisterCorrectAction(ulong clientId)
+    {
+        if (!IsServer) return;
+
+        _correctActionsThisRound.TryGetValue(clientId, out int count);
+        _correctActionsThisRound[clientId] = count + 1;
+
+        TryGetPlayerScore(clientId, out var score);
+        score?.AddScore(10);
+    }
+
+    private void AwardRoundCompletionScores()
+    {
+        ulong bossId = 0;
+        bool bossFound = false;
+
+        foreach (var player in LobbyPlayerManager.Instance.Players)
+        {
+            TryGetPlayerScore(player.ClientId, out var score);
+            score?.AddScore(200); // за завершение раунда — всем, включая босса
+
+            if (RoleAssignmentManager.Instance.GetRoleFor(player.ClientId) == GameRole.Boss)
+            {
+                bossId = player.ClientId;
+                bossFound = true;
+            }
+        }
+
+        if (bossFound)
+        {
+            int bonusSum = 0;
+            int bonusCount = 0;
+            foreach (var kvp in _correctActionsThisRound)
+            {
+                if (kvp.Key == bossId) continue; // босс не считается в среднем сам с собой
+                bonusSum += kvp.Value * 10;
+                bonusCount++;
+            }
+
+            if (bonusCount > 0)
+            {
+                int bossBonus = Mathf.RoundToInt((float)bonusSum / bonusCount);
+                TryGetPlayerScore(bossId, out var bossScore);
+                bossScore?.AddScore(bossBonus);
+            }
+        }
+
+        _correctActionsThisRound.Clear();
+    }
+
+    private bool TryGetPlayerScore(ulong clientId, out PlayerScore score)
+    {
+        score = null;
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client)) return false;
+        score = client.PlayerObject != null ? client.PlayerObject.GetComponent<PlayerScore>() : null;
+        return score != null;
     }
 
     void Update()

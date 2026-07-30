@@ -50,11 +50,43 @@ public class ResultsScreenController : MonoBehaviour
             var row = Instantiate(resultRowPrefab, resultsListContainer);
             var text = row.GetComponentInChildren<TMP_Text>();
             if (text != null)
-                text.text = $"{result.Role}: {result.Score * 100f:F0}% -> +{result.CurrencyEarned}";
+            {
+                string scoreSuffix = "";
+                if (NetworkManager.Singleton.ConnectedClients.TryGetValue(result.ClientId, out var client)
+                    && client.PlayerObject != null)
+                {
+                    var playerScore = client.PlayerObject.GetComponent<PlayerScore>();
+                    if (playerScore != null)
+                        scoreSuffix = $" | Очков: {playerScore.TotalScore.Value}";
+                }
+
+                text.text = $"{result.Role}: {result.Score * 100f:F0}% -> +{result.CurrencyEarned}{scoreSuffix}";
+            }
         }
 
         if (totalCurrencyText != null)
             totalCurrencyText.text = $"Итого валюты: {totalCurrency}";
+
+        // новое — босс не участвует в Results (у него нет головоломки/валюты),
+        // но очки под новой системой у него тоже есть — добавляем отдельной строкой
+        foreach (var player in LobbyPlayerManager.Instance.Players)
+        {
+            if (RoleAssignmentManager.Instance.GetRoleFor(player.ClientId) != GameRole.Boss) continue;
+
+            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(player.ClientId, out var bossClient)
+                && bossClient.PlayerObject != null)
+            {
+                var bossScore = bossClient.PlayerObject.GetComponent<PlayerScore>();
+                if (bossScore != null)
+                {
+                    var row = Instantiate(resultRowPrefab, resultsListContainer);
+                    var text = row.GetComponentInChildren<TMP_Text>();
+                    if (text != null)
+                        text.text = $"Boss: Очков: {bossScore.TotalScore.Value}";
+                }
+            }
+            break;
+        }
     }
 
     void OnReturnClicked()

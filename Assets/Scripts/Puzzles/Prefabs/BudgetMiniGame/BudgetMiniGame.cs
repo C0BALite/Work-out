@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
-using Unity.Netcode;
 
 public class BudgetMiniGame : MonoBehaviour, IPuzzle
 {
@@ -47,6 +46,12 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     private float targetMax;
     private float maxPossibleBudget;
     private bool wasInZone = false;
+    private BudgetBossSync bossSync; // новое
+
+    void Awake() // новое
+    {
+        bossSync = GetComponent<BudgetBossSync>();
+    }
 
     void Start()
     {
@@ -79,16 +84,26 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     }
     void OnSubmitClicked() // новое
     {
+        // завершение больше не тут — попадание в зону подтверждает босс (см. BudgetBossSync),
+        // это только локальная обратная связь игроку
         TryWin();
-        if (hasWon)
-        {
-            IsCompleted = true;
-            MiniGameEventSystem.Instance.ReportCorrectAction(NetworkManager.Singleton.LocalClientId);
-        }
     }
     public void Begin() // новое
     {
         IsCompleted = false;
+        hasWon = false;
+        wasInZone = false;
+        GeneratePuzzle();
+        if (budgetFill != null) budgetFill.color = barColor;
+        if (statusText != null) statusText.text = hintText;
+        PositionTargetZone();
+        UpdateUI();
+    }
+
+    // новое — вызывается по ClientRpc от BudgetBossSync после подтверждения боссом:
+    // раунд для маркетолога не заканчивается, просто новая цель
+    public void RegenerateFromBoss()
+    {
         hasWon = false;
         wasInZone = false;
         GeneratePuzzle();
@@ -229,6 +244,10 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
             Debug.Log($"[BudgetGame] Бюджет {total:F0} попал в зелёную зону {targetMin:F0}–{targetMax:F0}!");
         }
         wasInZone = nowInZone;
+
+        // новое — репорт боссу в реальном времени (BudgetBossSync живёт на том же объекте)
+        if (bossSync != null)
+            bossSync.ReportStateServerRpc(total, targetMin, targetMax, maxPossibleBudget);
     }
 
     float CalculateBudgetFromValues(float[] values)

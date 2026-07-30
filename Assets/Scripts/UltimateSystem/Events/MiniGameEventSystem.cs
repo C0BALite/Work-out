@@ -42,6 +42,9 @@ public class MiniGameEventSystem : NetworkBehaviour
                 ultimate.AddProgressForCorrectAction();
                 Debug.Log($"MiniGame reported correct action for player {playerId}");
             }
+
+            // новое — +10 очков за правильное действие + учёт для среднего бонуса боссу в конце раунда
+            GameSessionState.Instance?.RegisterCorrectAction(playerId);
         }
     }
 }
