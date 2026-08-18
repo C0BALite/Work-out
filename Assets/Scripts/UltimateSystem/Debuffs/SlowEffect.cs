@@ -3,18 +3,15 @@ using Unity.Netcode;
 
 public class SlowEffect : IDebuffEffect
 {
-    private float slowFactor = 0.5f;
-
     public void Apply(ulong targetClientId)
     {
         GameObject playerObj = GetPlayerObject(targetClientId);
         if (playerObj != null)
         {
-            // Здесь потом добавишь свою логику замедления
-            // Например: playerObj.GetComponent<PlayerMovement>().Speed *= slowFactor;
+            DebuffReceiver receiver = playerObj.GetComponent<DebuffReceiver>();
+            if (receiver != null)
+                receiver.ApplySlow();
         }
-
-        Debug.Log($"Игрок {targetClientId} замедлен!");
     }
 
     public void Remove(ulong targetClientId)
@@ -22,11 +19,10 @@ public class SlowEffect : IDebuffEffect
         GameObject playerObj = GetPlayerObject(targetClientId);
         if (playerObj != null)
         {
-            // Здесь уберёшь замедление
-            // Например: playerObj.GetComponent<PlayerMovement>().Speed /= slowFactor;
+            DebuffReceiver receiver = playerObj.GetComponent<DebuffReceiver>();
+            if (receiver != null)
+                receiver.RemoveSlow();
         }
-
-        Debug.Log($"Игрок {targetClientId} больше не замедлен!");
     }
 
     private GameObject GetPlayerObject(ulong clientId)

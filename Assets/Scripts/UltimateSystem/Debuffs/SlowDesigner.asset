@@ -17,5 +17,6 @@ MonoBehaviour:
   icon: {fileID: 0}
   debuffType: 0
   targetRole: 1
+  effectKind: 1
   duration: 5
   visualEffectPrefab: {fileID: 0}

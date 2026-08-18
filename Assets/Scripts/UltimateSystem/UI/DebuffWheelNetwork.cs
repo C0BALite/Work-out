@@ -40,6 +40,12 @@ public class DebuffWheelNetwork : NetworkBehaviour
     [ClientRpc]
     void NotifyDebuffAppliedClientRpc(int debuffId, ulong targetId, string debuffName)
     {
-        Debug.Log($"Дебаф {debuffName} применён к игроку {targetId}!");
+        if (NetworkManager.Singleton.LocalClientId != targetId) return;
+
+        var playerObject = NetworkManager.Singleton.LocalClient?.PlayerObject;
+        if (playerObject == null) return;
+
+        var receiver = playerObject.GetComponent<DebuffReceiver>();
+        receiver?.ShowDeliveryConfirm(debuffName);
     }
 }

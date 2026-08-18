@@ -21,6 +21,7 @@ public class TargetSelectionUI : MonoBehaviour
         onTargetChosen = callback;
         Rebuild();
         panel.SetActive(true);
+        panel.transform.SetAsLastSibling();
     }
 
     public void Hide()
