@@ -21,6 +21,10 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     public Image budgetFill;
     public RectTransform targetZone;
 
+    [Header("Риски на главной шкале")]
+    [SerializeField] private Color markerColor = new Color(0.9f, 0.92f, 1f, 1f);
+    [SerializeField] private float markerWidth = 6f;
+
     [Header("Параметры")]
     public Color barColor = new Color(0.75f, 0.75f, 0.75f);
 
@@ -47,6 +51,9 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     private float maxPossibleBudget;
     private bool wasInZone = false;
     private BudgetBossSync bossSync; // новое
+    private readonly float[] markerPositions = new float[4];
+    private readonly RectTransform[] markerRects = new RectTransform[4];
+    private int targetMarkerIndex;
 
     void Awake() // новое
     {
@@ -73,7 +80,8 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         if (budgetFill != null) budgetFill.color = barColor;
         if (statusText != null) statusText.text = hintText;
 
-        PositionTargetZone();
+        EnsureMarkers();
+        PositionMarkers();
         UpdateUI();
 
         
@@ -96,20 +104,8 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         GeneratePuzzle();
         if (budgetFill != null) budgetFill.color = barColor;
         if (statusText != null) statusText.text = hintText;
-        PositionTargetZone();
-        UpdateUI();
-    }
-
-    // новое — вызывается по ClientRpc от BudgetBossSync после подтверждения боссом:
-    // раунд для маркетолога не заканчивается, просто новая цель
-    public void RegenerateFromBoss()
-    {
-        hasWon = false;
-        wasInZone = false;
-        GeneratePuzzle();
-        if (budgetFill != null) budgetFill.color = barColor;
-        if (statusText != null) statusText.text = hintText;
-        PositionTargetZone();
+        EnsureMarkers();
+        PositionMarkers();
         UpdateUI();
     }
 
@@ -155,6 +151,8 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         targetMin = targetCenter - zoneHalf;
         targetMax = targetCenter + zoneHalf;
 
+        GenerateMarkerPositions(targetCenter / (maxPossibleBudget * 1.1f));
+
         for (int i = 0; i < 4; i++)
         {
             if (sliders[i].slider == null) continue;
@@ -165,8 +163,6 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
 
     void OnSliderChanged(int changedIndex, float newValue)
     {
-        if (hasWon) return;
-
         float delta = newValue - lastValues[changedIndex];
         if (Mathf.Abs(delta) < 0.01f) return;
 
@@ -241,13 +237,24 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         bool nowInZone = IsInTargetZone();
         if (nowInZone && !wasInZone)
         {
+            if (!hasWon)
+            {
+                hasWon = true;
+                OnWin?.Invoke();
+            }
             Debug.Log($"[BudgetGame] Бюджет {total:F0} попал в зелёную зону {targetMin:F0}–{targetMax:F0}!");
         }
         wasInZone = nowInZone;
 
         // новое — репорт боссу в реальном времени (BudgetBossSync живёт на том же объекте)
-        if (bossSync != null)
-            bossSync.ReportStateServerRpc(total, targetMin, targetMax, maxPossibleBudget);
+        if (bossSync != null && RoleAssignmentManager.Instance != null &&
+            RoleAssignmentManager.Instance.GetMyRole() == GameRole.Programmer)
+        {
+            bossSync.ReportStateServerRpc(
+                total, targetMin, targetMax, maxPossibleBudget,
+                markerPositions[0], markerPositions[1], markerPositions[2], markerPositions[3],
+                targetMarkerIndex);
+        }
     }
 
     float CalculateBudgetFromValues(float[] values)
@@ -322,22 +329,82 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         GeneratePuzzle();
         if (budgetFill != null) budgetFill.color = barColor;
         if (statusText != null) statusText.text = hintText;
-        PositionTargetZone();
+        EnsureMarkers();
+        PositionMarkers();
         UpdateUI();
         Debug.Log($"=== NEW PUZZLE === Цель: {targetMin:F0}–{targetMax:F0} | Старт: {GetTotalBudget():F0}");
     }
 
-    void PositionTargetZone()
+    private void GenerateMarkerPositions(float targetPosition)
     {
-        if (budgetBar == null || targetZone == null) return;
-        RectTransform barRect = budgetBar.GetComponent<RectTransform>();
-        float barWidth = barRect.rect.width;
-        if (barWidth <= 0) return;
+        targetMarkerIndex = UnityEngine.Random.Range(0, markerPositions.Length);
+        markerPositions[targetMarkerIndex] = Mathf.Clamp(targetPosition, 0.08f, 0.92f);
 
-        float xMin = (targetMin / (maxPossibleBudget * 1.1f)) * barWidth;
-        float zoneWidth = ((targetMax - targetMin) / (maxPossibleBudget * 1.1f)) * barWidth;
+        for (int i = 0; i < markerPositions.Length; i++)
+        {
+            if (i == targetMarkerIndex) continue;
 
-        targetZone.anchoredPosition = new Vector2(xMin, 0);
-        targetZone.sizeDelta = new Vector2(Mathf.Max(zoneWidth, 4f), barRect.rect.height);
+            float candidate = 0.5f;
+            for (int attempt = 0; attempt < 40; attempt++)
+            {
+                candidate = UnityEngine.Random.Range(0.08f, 0.92f);
+                bool farEnough = true;
+                for (int j = 0; j < markerPositions.Length; j++)
+                {
+                    if (j == i || (j != targetMarkerIndex && j > i)) continue;
+                    if (Mathf.Abs(candidate - markerPositions[j]) < 0.12f)
+                    {
+                        farEnough = false;
+                        break;
+                    }
+                }
+
+                if (farEnough) break;
+            }
+            markerPositions[i] = candidate;
+        }
+    }
+
+    private void EnsureMarkers()
+    {
+        if (targetZone == null || markerRects[0] != null) return;
+
+        markerRects[0] = targetZone;
+        targetZone.name = "Marker_1";
+        for (int i = 1; i < markerRects.Length; i++)
+        {
+            GameObject markerObject = Instantiate(targetZone.gameObject, targetZone.parent);
+            markerObject.name = $"Marker_{i + 1}";
+            markerRects[i] = markerObject.GetComponent<RectTransform>();
+        }
+
+        foreach (RectTransform marker in markerRects)
+        {
+            var image = marker.GetComponent<Image>();
+            if (image != null)
+            {
+                // У программиста все риски одинаковые — правильная не раскрывается.
+                image.color = markerColor;
+                image.raycastTarget = false;
+            }
+        }
+    }
+
+    private void PositionMarkers()
+    {
+        EnsureMarkers();
+        for (int i = 0; i < markerRects.Length; i++)
+        {
+            RectTransform marker = markerRects[i];
+            if (marker == null) continue;
+
+            float x = Mathf.Clamp01(markerPositions[i]);
+            marker.anchorMin = new Vector2(x, 0f);
+            marker.anchorMax = new Vector2(x, 1f);
+            marker.pivot = new Vector2(0.5f, 0.5f);
+            marker.anchoredPosition = Vector2.zero;
+            marker.sizeDelta = new Vector2(markerWidth, 8f);
+            marker.gameObject.SetActive(true);
+        }
     }
 }

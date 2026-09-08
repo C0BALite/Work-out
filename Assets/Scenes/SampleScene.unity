@@ -3897,6 +3897,8 @@ MonoBehaviour:
   lobbyCanvas: {fileID: 64600855}
   inGameCanvas: {fileID: 590787454}
   resultsCanvas: {fileID: 1551507598}
+  bossCanvas: {fileID: 0}
+  bossCanvasPrefab: {fileID: 8700404581764890, guid: 5300948e51774eeb99c2b375c6615978, type: 3}
   timerText: {fileID: 423543913}
 --- !u!4 &1197787035
 Transform:

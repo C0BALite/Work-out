@@ -1,55 +1,111 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
-// Справочник босса для копирайтера — полностью статичные данные (DocumentRequestData.All),
-// сеть не нужна. Папка открывает/закрывает список, строится один раз при первом открытии.
+// Постоянно открытый прокручиваемый справочник документов для экрана босса.
 public class DocumentReferencePanelUI : MonoBehaviour
 {
     [SerializeField] private Button folderButton;
     [SerializeField] private GameObject listPanel;
     [SerializeField] private Transform rowContainer;
-    [SerializeField] private GameObject rowPrefab; // ожидается 2 TMP_Text ребёнка: [0]=заявка, [1]=вердикт
+    [SerializeField] private GameObject rowPrefab;
 
+    private const float RowHeight = 44f;
     private bool built;
+    private ScrollRect scrollRect;
 
-    void Awake()
+    private void Awake()
     {
-        if (listPanel != null) listPanel.SetActive(false);
-        if (folderButton != null) folderButton.onClick.AddListener(Toggle);
-    }
+        if (folderButton != null)
+            folderButton.gameObject.SetActive(false);
 
-    void Toggle()
-    {
         if (listPanel == null) return;
 
-        bool show = !listPanel.activeSelf;
-        if (show && !built) Build();
-        listPanel.SetActive(show);
+        // Раньше список был отдельным всплывающим окном в корне Canvas.
+        // Теперь он постоянно занимает панель копирайтера в сетке 2x2.
+        listPanel.transform.SetParent(transform, false);
+        RectTransform listRect = listPanel.GetComponent<RectTransform>();
+        if (listRect != null)
+        {
+            listRect.anchorMin = Vector2.zero;
+            listRect.anchorMax = Vector2.one;
+            listRect.offsetMin = new Vector2(18f, 18f);
+            listRect.offsetMax = new Vector2(-18f, -70f);
+        }
+
+        Image listBackground = listPanel.GetComponent<Image>();
+        if (listBackground != null)
+        {
+            // Сохраняем Image для обработки drag/scroll, но убираем чёрную заливку.
+            listBackground.color = Color.clear;
+            listBackground.raycastTarget = true;
+        }
+
+        listPanel.SetActive(true);
+        ConfigureScrolling(listRect);
+        Build();
+
+        if (scrollRect != null)
+            scrollRect.verticalNormalizedPosition = 1f;
     }
 
-    private const float RowHeight = 30f;
-
-    void Build()
+    private void ConfigureScrolling(RectTransform viewport)
     {
+        if (viewport == null || rowContainer == null) return;
+
+        RectTransform content = rowContainer as RectTransform;
+        if (content == null) return;
+
+        if (listPanel.GetComponent<RectMask2D>() == null)
+            listPanel.AddComponent<RectMask2D>();
+
+        scrollRect = listPanel.GetComponent<ScrollRect>();
+        if (scrollRect == null)
+            scrollRect = listPanel.AddComponent<ScrollRect>();
+
+        content.anchorMin = new Vector2(0f, 1f);
+        content.anchorMax = new Vector2(1f, 1f);
+        content.pivot = new Vector2(0.5f, 1f);
+        content.anchoredPosition = new Vector2(0f, -8f);
+        content.sizeDelta = new Vector2(-16f, DocumentRequestData.All.Length * RowHeight + 16f);
+
+        scrollRect.viewport = viewport;
+        scrollRect.content = content;
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+        scrollRect.scrollSensitivity = 28f;
+        scrollRect.inertia = true;
+        scrollRect.decelerationRate = 0.12f;
+    }
+
+    private void Build()
+    {
+        if (built || rowContainer == null || rowPrefab == null) return;
         built = true;
-        if (rowContainer == null || rowPrefab == null) return;
 
         int index = 0;
         foreach (var entry in DocumentRequestData.All)
         {
-            var row = Instantiate(rowPrefab, rowContainer);
-
-            var rowRect = row.GetComponent<RectTransform>();
+            GameObject row = Instantiate(rowPrefab, rowContainer);
+            RectTransform rowRect = row.GetComponent<RectTransform>();
             if (rowRect != null)
-                rowRect.anchoredPosition = new Vector2(0, -index * RowHeight);
+            {
+                rowRect.anchorMin = new Vector2(0f, 1f);
+                rowRect.anchorMax = new Vector2(1f, 1f);
+                rowRect.pivot = new Vector2(0.5f, 1f);
+                rowRect.anchoredPosition = new Vector2(0f, -index * RowHeight);
+                rowRect.sizeDelta = new Vector2(0f, RowHeight - 4f);
+            }
 
-            var texts = row.GetComponentsInChildren<TMP_Text>();
+            TMP_Text[] texts = row.GetComponentsInChildren<TMP_Text>();
             if (texts.Length >= 2)
             {
                 texts[0].text = entry.request;
                 texts[1].text = entry.shouldApprove ? "Согласовать" : "Отклонить";
-                texts[1].color = entry.shouldApprove ? Color.green : Color.red;
+                texts[1].color = entry.shouldApprove
+                    ? new Color(0.2f, 0.9f, 0.35f)
+                    : new Color(1f, 0.3f, 0.3f);
             }
 
             index++;

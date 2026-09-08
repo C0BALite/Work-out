@@ -6,7 +6,8 @@ public class GameFlowController : MonoBehaviour
     [SerializeField] private GameObject lobbyCanvas;
     [SerializeField] private GameObject inGameCanvas;
     [SerializeField] private GameObject resultsCanvas;
-    [SerializeField] private GameObject bossCanvas; // новое
+    [SerializeField] private GameObject bossCanvas;
+    [SerializeField] private GameObject bossCanvasPrefab;
     [SerializeField] private TMP_Text timerText;
 
     private SessionPhase lastAppliedPhase = (SessionPhase)(-1); // невалидное значение, чтобы первый Update точно применил фазу
@@ -36,6 +37,17 @@ public class GameFlowController : MonoBehaviour
             bool amBoss = RoleAssignmentManager.Instance != null
                 && RoleAssignmentManager.Instance.GetMyRole() == GameRole.Boss;
             bossCanvas.SetActive(phase == SessionPhase.InGame && amBoss);
+        }
+        else
+        {
+            bool amBoss = RoleAssignmentManager.Instance != null
+                && RoleAssignmentManager.Instance.GetMyRole() == GameRole.Boss;
+            if (amBoss && bossCanvasPrefab != null)
+            {
+                bossCanvas = Instantiate(bossCanvasPrefab);
+                bossCanvas.name = "BossCanvas";
+                bossCanvas.SetActive(phase == SessionPhase.InGame);
+            }
         }
     }
 

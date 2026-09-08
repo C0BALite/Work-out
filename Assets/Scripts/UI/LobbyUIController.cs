@@ -13,6 +13,8 @@ public class LobbyUIController : MonoBehaviour
     [SerializeField] private GameObject createJoinPanel;   // новое поле
     [SerializeField] private GameObject lobbyScreenPanel;  // новое поле
 
+    private LobbyCodeCopyButton lobbyCodeCopyButton;
+
 #if UNITY_EDITOR
     [Header("Debug (только редактор)")]
     [SerializeField] private Button debugJoinButton; // новое — подключение по коду последнего созданного лобби без ручного ввода, для тестов с несколькими ParrelSync-клонами
@@ -22,6 +24,9 @@ public class LobbyUIController : MonoBehaviour
     {
         createButton.onClick.AddListener(OnCreateClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
+        lobbyCodeCopyButton = lobbyCodeDisplay.GetComponent<LobbyCodeCopyButton>();
+        if (lobbyCodeCopyButton == null)
+            lobbyCodeCopyButton = lobbyCodeDisplay.gameObject.AddComponent<LobbyCodeCopyButton>();
 
 #if UNITY_EDITOR
         if (debugJoinButton != null)
@@ -35,7 +40,7 @@ public class LobbyUIController : MonoBehaviour
         try
         {
             string code = await SessionManager.Instance.CreateLobbyAsync("Host");
-            lobbyCodeDisplay.text = $"Код лобби: {code}";
+            lobbyCodeCopyButton.SetCode(code);
             statusText.text = "Лобби создано, ждём игроков";
 
             ShowLobbyScreen(); // новое

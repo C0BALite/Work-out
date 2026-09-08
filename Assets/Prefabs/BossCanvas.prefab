@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4128094423077853}
   - component: {fileID: 3423708552748796}
   - component: {fileID: 5062929551826622}
+  - component: {fileID: 9098000000000001}
   m_Layer: 5
   m_Name: BossCanvas
   m_TagString: Untagged
@@ -105,6 +106,18 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &9098000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8700404581764890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6517530ab30499bb5b746c44d6ab5ca, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::BossDashboardLayout
 --- !u!1 &7852430376935389
 GameObject:
   m_ObjectHideFlags: 0
