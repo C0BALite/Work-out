@@ -16,26 +16,24 @@ public class BudgetBossPanelUI : MonoBehaviour
     [SerializeField] private Color targetMarkerColor = new Color(0.15f, 0.9f, 0.3f, 1f);
     [SerializeField] private Color currentPositionColor = new Color(1f, 0.2f, 0.25f, 1f);
 
-    private readonly RectTransform[] markers = new RectTransform[4];
-    private RectTransform currentPosition;
-    private TMP_Text statusLabel;
-    private Image statusBackground;
+    [SerializeField] private RectTransform[] markers = new RectTransform[4];
+    [SerializeField] private RectTransform currentPosition;
+    [SerializeField] private TMP_Text statusLabel;
+    [SerializeField] private Image statusBackground;
 
     private void Awake()
     {
-        EnsureVisuals();
-        SetStatus("Ожидание программиста", false);
+        SetStatus("Waiting for programmer", false);
     }
 
     private void Update()
     {
-        EnsureVisuals();
 
         BudgetBossSync sync = BudgetBossSync.Instance;
         if (sync == null || !sync.HasState.Value)
         {
             SetMarkersVisible(false);
-            SetStatus("Ожидание программиста", false);
+            SetStatus("Waiting for programmer", false);
             return;
         }
 
@@ -61,10 +59,11 @@ public class BudgetBossPanelUI : MonoBehaviour
         if (budgetFill != null)
             budgetFill.fillAmount = normalizedCurrent;
 
-        SetStatus(sync.Completed.Value ? "Выполнено" : "Не выполнено", sync.Completed.Value);
+        SetStatus(sync.Completed.Value ? "Completed" : "Incomplete", sync.Completed.Value);
     }
 
-    private void EnsureVisuals()
+    #if UNITY_EDITOR
+    public void EnsureVisuals()
     {
         if (targetZone == null || markers[0] != null) return;
 
@@ -92,6 +91,8 @@ public class BudgetBossPanelUI : MonoBehaviour
             statusBackground = confirmButton.GetComponent<Image>();
         }
     }
+
+    #endif
 
     private static void PositionAt(RectTransform rect, float normalizedX, float width, float extraHeight)
     {

@@ -57,15 +57,15 @@ public class ResultsScreenController : MonoBehaviour
                 {
                     var playerScore = client.PlayerObject.GetComponent<PlayerScore>();
                     if (playerScore != null)
-                        scoreSuffix = $" | Очков: {playerScore.TotalScore.Value}";
+                        scoreSuffix = $" | Score: {playerScore.TotalScore.Value}";
                 }
 
-                text.text = $"{result.Role}: {result.Score * 100f:F0}% -> +{result.CurrencyEarned}{scoreSuffix}";
+                text.text = $"{WorkOutDesktop.RoleName(result.Role)}: {result.Score * 100f:F0}%  /  +{result.CurrencyEarned}{scoreSuffix}";
             }
         }
 
         if (totalCurrencyText != null)
-            totalCurrencyText.text = $"Итого валюты: {totalCurrency}";
+            totalCurrencyText.text = $"Total currency: {totalCurrency}";
 
         // новое — босс не участвует в Results (у него нет головоломки/валюты),
         // но очки под новой системой у него тоже есть — добавляем отдельной строкой
@@ -82,7 +82,7 @@ public class ResultsScreenController : MonoBehaviour
                     var row = Instantiate(resultRowPrefab, resultsListContainer);
                     var text = row.GetComponentInChildren<TMP_Text>();
                     if (text != null)
-                        text.text = $"Boss: Очков: {bossScore.TotalScore.Value}";
+                        text.text = $"Manager: score {bossScore.TotalScore.Value}";
                 }
             }
             break;

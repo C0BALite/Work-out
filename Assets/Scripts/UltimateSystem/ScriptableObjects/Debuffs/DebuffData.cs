@@ -6,8 +6,8 @@ public enum DebuffEffectKind { Blur, Slow } // новое
 public class DebuffData : ScriptableObject
 {
     [Header("Основная информация")]
-    public string debuffName = "Новый дебаф";
-    public string description = "Описание эффекта";
+    public string debuffName = "New debuff";
+    public string description = "Effect description";
     public Sprite icon;
 
     [Header("Тип дебафа")]

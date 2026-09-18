@@ -16,6 +16,9 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
     [SerializeField] private Button doneButton; // новое — добавить в Prefab
     public bool IsCompleted { get; private set; } // новое
 
+    [SerializeField] private Image brushButtonImage;
+    [SerializeField] private Image eraserButtonImage;
+
     private RawImage rawImage;
     private Texture2D texture;
     private RectTransform rectTransform;
@@ -25,6 +28,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
 
     void Start()
     {
+        Canvas.ForceUpdateCanvases();
         rawImage = GetComponent<RawImage>();
         rectTransform = GetComponent<RectTransform>();
 
@@ -39,13 +43,24 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
 
         
 
-        if (doneButton != null) doneButton.onClick.AddListener(OnDoneClicked); // новое
+        if (doneButton != null)
+        {
+            doneButton.onClick.RemoveListener(OnDoneClicked);
+            doneButton.onClick.AddListener(OnDoneClicked);
+        }
+    }
+
+    public void SetSubmitButton(Button button)
+    {
+        if (doneButton != null) doneButton.onClick.RemoveListener(OnDoneClicked);
+        doneButton = button;
+        if (doneButton != null) doneButton.onClick.AddListener(OnDoneClicked);
     }
 
     void Update()
     {
         Mouse mouse = Mouse.current;
-        if (mouse == null) return;
+        if (mouse == null || texture == null || IsCompleted) return;
 
         if (mouse.leftButton.isPressed)
         {
@@ -54,8 +69,11 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
             
 
             Vector2 localPos;
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                rectTransform, screenPos, null, out localPos))
+            var canvas = GetComponentInParent<Canvas>();
+            Camera eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+            if (RectTransformUtility.RectangleContainsScreenPoint(rectTransform, screenPos, eventCamera) &&
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                rectTransform, screenPos, eventCamera, out localPos))
             {
                 Vector2 texPos = LocalToTexture(localPos);
 
@@ -70,6 +88,7 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
 
                 lastTexPos = texPos;
             }
+            else lastTexPos = null;
         }
         else
         {
@@ -84,14 +103,20 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
         }
     }
 
-    public void SetBrushMode() => isEraser = false;
-    public void SetEraserMode() => isEraser = true;
+    public void SetBrushMode() { isEraser = false; RefreshToolSelection(); }
+    public void SetEraserMode() { isEraser = true; RefreshToolSelection(); }
 
-    public void SetColorBlack()  { brushColor = Color.black; isEraser = false; }
-    public void SetColorRed()    { brushColor = Color.red; isEraser = false; }
-    public void SetColorBlue()   { brushColor = Color.blue; isEraser = false; }
-    public void SetColorGreen()  { brushColor = Color.green; isEraser = false; }
-    public void SetColorYellow() { brushColor = new Color(1f, 0.92f, 0.016f, 1f); isEraser = false; }
+    private void RefreshToolSelection()
+    {
+        if (brushButtonImage != null) brushButtonImage.sprite = WorkOutTheme.GetSprite(isEraser ? WorkOutTheme.Surface.Raised : WorkOutTheme.Surface.Blue);
+        if (eraserButtonImage != null) eraserButtonImage.sprite = WorkOutTheme.GetSprite(isEraser ? WorkOutTheme.Surface.Blue : WorkOutTheme.Surface.Raised);
+    }
+
+    public void SetColorBlack()  { brushColor = Color.black; SetBrushMode(); }
+    public void SetColorRed()    { brushColor = Color.red; SetBrushMode(); }
+    public void SetColorBlue()   { brushColor = Color.blue; SetBrushMode(); }
+    public void SetColorGreen()  { brushColor = Color.green; SetBrushMode(); }
+    public void SetColorYellow() { brushColor = new Color(1f, 0.92f, 0.016f, 1f); SetBrushMode(); }
 
     void ClearTexture()
     {
@@ -106,7 +131,8 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
     {
         float w = rectTransform.rect.width;
         float h = rectTransform.rect.height;
-        return new Vector2(local.x + w * 0.5f, local.y + h * 0.5f);
+        return new Vector2((local.x - rectTransform.rect.xMin) / w * (texture.width - 1),
+            (local.y - rectTransform.rect.yMin) / h * (texture.height - 1));
     }
 
     void DrawLine(Vector2 from, Vector2 to)
@@ -157,6 +183,13 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
     public void Begin() // новое
     {
         IsCompleted = false;
+        lastTexPos = null;
+        if (doneButton != null)
+        {
+            doneButton.interactable = true;
+            var label = doneButton.GetComponentInChildren<TMPro.TMP_Text>();
+            if (label != null) label.text = "Submit";
+        }
         if (texture != null) ClearTexture();
     }
 
@@ -180,7 +213,20 @@ public class PaintDrawer : MonoBehaviour, IPuzzle   // добавлен IPuzzle
 
     void OnDoneClicked() // новое
     {
+        if (IsCompleted) return;
         IsCompleted = true;
+        if (doneButton != null)
+        {
+            doneButton.interactable = false;
+            var label = doneButton.GetComponentInChildren<TMPro.TMP_Text>();
+            if (label != null) label.text = "Submitted";
+        }
         OnCorrectAction();
+    }
+
+    private void OnDestroy()
+    {
+        if (doneButton != null) doneButton.onClick.RemoveListener(OnDoneClicked);
+        if (texture != null) Destroy(texture);
     }
 }

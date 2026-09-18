@@ -610,7 +610,6 @@ MonoBehaviour:
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -663,8 +662,8 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   wheelPanel: {fileID: 361502670}
-  confirmButton: {fileID: 2071292784}
-  resultText: {fileID: 1353076250}
+  resultText: {fileID: 0}
+  targetSelectionUI: {fileID: 0}
 --- !u!1 &435723929
 GameObject:
   m_ObjectHideFlags: 0
@@ -875,7 +874,6 @@ MonoBehaviour:
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -1050,7 +1048,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u041A\u0440\u0443\u0442\u0438\u043C \u043A\u043E\u043B\u0435\u0441\u043E..."
+  m_Text: Spinning the wheel...
 --- !u!222 &1353076251
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1290,7 +1288,6 @@ MonoBehaviour:
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 1
   SpawnWithObservers: 1
@@ -1316,6 +1313,7 @@ MonoBehaviour:
   ultimateBar: {fileID: 310921096}
   ultimateButton: {fileID: 287610841}
   debuffWheelPanel: {fileID: 361502670}
+  abilityCanvas: {fileID: 0}
 --- !u!114 &1584477867
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -38,7 +38,7 @@ public class DebuffWheel : NetworkBehaviour
         currentUser = user;
 
         if (wheelPanel != null) wheelPanel.SetActive(true);
-        if (resultText != null) resultText.text = "Крутим колесо...";
+        if (resultText != null) resultText.text = "Spinning the wheel...";
 
         StartCoroutine(SpinWheel());
     }
@@ -66,9 +66,9 @@ public class DebuffWheel : NetworkBehaviour
 
         if (resultText != null)
         {
-            resultText.text = $"Выпал: {selectedDebuff.debuffName}";
+            resultText.text = $"Selected: {selectedDebuff.debuffName}";
             if (selectedDebuff.debuffType == DebuffType.RoleSpecific)
-                resultText.text += $"\n(Роль: {selectedDebuff.targetRole})";
+                resultText.text += $"\n(Role: {WorkOutDesktop.RoleName(selectedDebuff.targetRole)})";
         }
 
         if (wheelPanel != null) wheelPanel.SetActive(false);

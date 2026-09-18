@@ -20,19 +20,20 @@ public class DebuffWheelUI : MonoBehaviour
     private DebuffData selectedDebuff;
     private bool isSpinning;
 
-    private Image cursorDebuffIcon;
-    private TMP_Text cursorDebuffLabel;
-    private RectTransform cursorDebuffIconRect;
+    [SerializeField] private Image cursorDebuffIcon;
+    [SerializeField] private TMP_Text cursorDebuffLabel;
+    [SerializeField] private RectTransform cursorDebuffIconRect;
     private bool cursorIconAttached;
 
     void Awake()
     {
         Instance = this;
         if (wheelPanel != null) wheelPanel.SetActive(false);
-        EnsureCursorIcon();
+
     }
 
-    void EnsureCursorIcon()
+    #if UNITY_EDITOR
+    public void EnsureCursorIcon()
     {
         if (cursorDebuffIconRect != null) return;
 
@@ -67,6 +68,8 @@ public class DebuffWheelUI : MonoBehaviour
         go.SetActive(false);
     }
 
+    #endif
+
     void Update()
     {
         if (!cursorIconAttached || cursorDebuffIconRect == null) return;
@@ -88,7 +91,7 @@ public class DebuffWheelUI : MonoBehaviour
         DetachCursorIcon();
 
         if (wheelPanel != null) wheelPanel.SetActive(true);
-        if (resultText != null) resultText.text = "Крутим колесо...";
+        if (resultText != null) resultText.text = "Spinning the wheel...";
 
         StartCoroutine(SpinWheel());
     }
@@ -116,9 +119,9 @@ public class DebuffWheelUI : MonoBehaviour
 
         if (resultText != null)
         {
-            resultText.text = $"Выпал: {selectedDebuff.debuffName}";
+            resultText.text = $"Selected: {selectedDebuff.debuffName}";
             if (selectedDebuff.debuffType == DebuffType.RoleSpecific)
-                resultText.text += $"\n(Роль: {selectedDebuff.targetRole})";
+                resultText.text += $"\n(Role: {WorkOutDesktop.RoleName(selectedDebuff.targetRole)})";
         }
 
         AttachCursorIcon(selectedDebuff);
@@ -131,7 +134,7 @@ public class DebuffWheelUI : MonoBehaviour
 
     void AttachCursorIcon(DebuffData debuff)
     {
-        EnsureCursorIcon();
+
 
         bool hasIcon = debuff != null && debuff.icon != null;
         cursorDebuffIcon.enabled = hasIcon;

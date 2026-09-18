@@ -11,9 +11,9 @@ public class BossPanelController : MonoBehaviour
 
     void Update()
     {
-        UpdateLabel(artistLabel, GameRole.Artist, "Художник");
-        UpdateLabel(programmerLabel, GameRole.Programmer, "Программист");
-        UpdateLabel(typographerLabel, GameRole.Typographer, "Копирайтер");
+        UpdateLabel(artistLabel, GameRole.Artist, "Designer");
+        UpdateLabel(programmerLabel, GameRole.Programmer, "Programmer");
+        UpdateLabel(typographerLabel, GameRole.Typographer, "Copywriter");
     }
 
     void UpdateLabel(TMP_Text label, GameRole role, string roleName)

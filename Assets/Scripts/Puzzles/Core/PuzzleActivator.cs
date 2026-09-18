@@ -42,12 +42,6 @@ public class PuzzleActivator : NetworkBehaviour
         {
             puzzleRoot.transform.SetParent(PuzzleSlotCanvas.Instance.SlotRoot, false);
 
-            var rt = puzzleRoot.GetComponent<RectTransform>();
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
-
             puzzleRoot.SetActive(true);
             puzzle.Begin();
         }

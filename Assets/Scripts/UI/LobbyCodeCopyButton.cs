@@ -12,7 +12,7 @@ public class LobbyCodeCopyButton : MonoBehaviour, IPointerClickHandler
 
     private TMP_Text codeLabel;
     private string lobbyCode;
-    private CanvasGroup popup;
+    [SerializeField] private CanvasGroup popup;
     private Coroutine hidePopupCoroutine;
 
     private void Awake()
@@ -24,7 +24,7 @@ public class LobbyCodeCopyButton : MonoBehaviour, IPointerClickHandler
     {
         EnsureInitialized();
         lobbyCode = code;
-        codeLabel.text = $"Код лобби: {code}";
+        codeLabel.text = $"Lobby code: {code}";
     }
 
     private void EnsureInitialized()
@@ -33,7 +33,7 @@ public class LobbyCodeCopyButton : MonoBehaviour, IPointerClickHandler
             return;
 
         codeLabel = GetComponent<TMP_Text>();
-        CreatePopup();
+
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -45,8 +45,11 @@ public class LobbyCodeCopyButton : MonoBehaviour, IPointerClickHandler
         ShowPopup();
     }
 
-    private void CreatePopup()
+    #if UNITY_EDITOR
+    public void CreatePopup()
     {
+        if (popup != null) return;
+        codeLabel = GetComponent<TMP_Text>();
         var popupObject = new GameObject("CodeCopiedPopup", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(CanvasGroup));
         popupObject.transform.SetParent(transform, false);
 
@@ -75,7 +78,7 @@ public class LobbyCodeCopyButton : MonoBehaviour, IPointerClickHandler
         textRect.offsetMax = new Vector2(-12f, -6f);
 
         var popupText = textObject.GetComponent<TextMeshProUGUI>();
-        popupText.text = "Код скопирован";
+        popupText.text = "Code copied";
         popupText.font = codeLabel.font;
         popupText.fontSize = 26f;
         popupText.alignment = TextAlignmentOptions.Center;
@@ -84,6 +87,8 @@ public class LobbyCodeCopyButton : MonoBehaviour, IPointerClickHandler
 
         popupObject.SetActive(false);
     }
+
+    #endif
 
     private void ShowPopup()
     {

@@ -44,7 +44,7 @@ public class TargetSelectionUI : MonoBehaviour
             var btnObj = Instantiate(targetButtonPrefab, buttonContainer);
 
             var text = btnObj.GetComponentInChildren<TMP_Text>();
-            if (text != null) text.text = $"{player.PlayerName} [{role}]";
+            if (text != null) text.text = $"{player.PlayerName} [{WorkOutDesktop.RoleName(role)}]";
 
             ulong targetId = player.ClientId; // локальная копия для замыкания
             btnObj.GetComponentInChildren<Button>().onClick.AddListener(() =>

@@ -9,7 +9,7 @@ public class DebuffReceiver : NetworkBehaviour
     [SerializeField] private GameObject blurPanel;
     [SerializeField] private GameObject slowIcon;
 
-    private TMP_Text deliveryConfirmText;
+    [SerializeField] private TMP_Text deliveryConfirmText;
     private Coroutine deliveryConfirmHideRoutine;
 
     public override void OnNetworkSpawn()
@@ -22,8 +22,8 @@ public class DebuffReceiver : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        EnsureDeliveryConfirmText();
-        deliveryConfirmText.text = $"Получен дебаф: {debuffName}";
+
+        deliveryConfirmText.text = $"Debuff received: {debuffName}";
         deliveryConfirmText.gameObject.SetActive(true);
 
         if (deliveryConfirmHideRoutine != null)
@@ -31,7 +31,8 @@ public class DebuffReceiver : NetworkBehaviour
         deliveryConfirmHideRoutine = StartCoroutine(HideDeliveryConfirmAfterDelay(3f));
     }
 
-    void EnsureDeliveryConfirmText()
+    #if UNITY_EDITOR
+    public void EnsureDeliveryConfirmText()
     {
         if (deliveryConfirmText != null) return;
 
@@ -53,6 +54,8 @@ public class DebuffReceiver : NetworkBehaviour
         deliveryConfirmText.raycastTarget = false;
         go.SetActive(false);
     }
+
+    #endif
 
     IEnumerator HideDeliveryConfirmAfterDelay(float delay)
     {

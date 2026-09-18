@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -94,25 +95,25 @@ public class DocumentApprovalGame : MonoBehaviour, IPuzzle
         var request = budgetRequests[Random.Range(0, budgetRequests.Length)];
         shouldApproveCurrent = request.shouldApprove;
 
-        companyTitle.text = "ООО \"БЮРОКРАТИЯ\"";
-        requestTitle.text = "ЗАЯВКА НА БЮДЖЕТ";
-        requestNumber.text = "№" + Random.Range(10000, 99999) + " от " + System.DateTime.Now.ToString("dd.MM.yyyy");
+        companyTitle.text = "\"BUREAUCRACY\" LLC";
+        requestTitle.text = "BUDGET REQUEST";
+        requestNumber.text = "No. " + Random.Range(10000, 99999) + " dated " + System.DateTime.Now.ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
         requestBody.text = request.request;
 
         int amount = shouldApproveCurrent ? Random.Range(500, 5000) : Random.Range(50000, 500000);
-        amountText.text = "СУММА: " + amount.ToString("N0") + " Р";
+        amountText.text = "AMOUNT: " + amount.ToString("N0", CultureInfo.InvariantCulture) + " RUB";
 
         string[] goodReasons = {
-            "Обоснование: Критически необходимо для работы.",
-            "Обоснование: Без этого отдел остановится.",
-            "Обоснование: Закон требует (probably).",
-            "Обоснование: Уже 3 месяца терпим."
+            "Reason: Essential for our work.",
+            "Reason: The department cannot function without it.",
+            "Reason: Required by law (probably).",
+            "Reason: We have put up with this for three months."
         };
         string[] badReasons = {
-            "Обоснование: Потому что я CEO.",
-            "Обоснование: Для повышения морального духа.",
-            "Обоснование: Это инвестиция в будущее (maybe).",
-            "Обоснование: Видел у конкурентов — завидую."
+            "Reason: Because I am the CEO.",
+            "Reason: To boost morale.",
+            "Reason: An investment in the future (maybe).",
+            "Reason: Our competitors have it. I am jealous."
         };
         reasonText.text = shouldApproveCurrent
             ? goodReasons[Random.Range(0, goodReasons.Length)]
@@ -164,7 +165,7 @@ public class DocumentApprovalGame : MonoBehaviour, IPuzzle
             MiniGameEventSystem.Instance.ReportCorrectAction(NetworkManager.Singleton.LocalClientId);
         }
 
-        feedbackText.text = wasCorrect ? "Верно!" : "Ошибка!";
+        feedbackText.text = wasCorrect ? "Correct!" : "Incorrect!";
         feedbackText.color = wasCorrect ? Color.green : Color.red;
         feedbackPanel.SetActive(true);
     }

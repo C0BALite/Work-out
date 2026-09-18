@@ -31,7 +31,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     [Header("UI")]
     public TextMeshProUGUI totalText;
     public TextMeshProUGUI statusText;
-    [TextArea] public string hintText = "Настройте бюджет, чтобы попасть в зелёную зону...";
+    [TextArea] public string hintText = "Adjust the budget to reach the green zone...";
 
    
 
@@ -52,7 +52,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
     private bool wasInZone = false;
     private BudgetBossSync bossSync; // новое
     private readonly float[] markerPositions = new float[4];
-    private readonly RectTransform[] markerRects = new RectTransform[4];
+    [SerializeField] private RectTransform[] markerRects = new RectTransform[4];
     private int targetMarkerIndex;
 
     void Awake() // новое
@@ -80,7 +80,6 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         if (budgetFill != null) budgetFill.color = barColor;
         if (statusText != null) statusText.text = hintText;
 
-        EnsureMarkers();
         PositionMarkers();
         UpdateUI();
 
@@ -104,7 +103,6 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         GeneratePuzzle();
         if (budgetFill != null) budgetFill.color = barColor;
         if (statusText != null) statusText.text = hintText;
-        EnsureMarkers();
         PositionMarkers();
         UpdateUI();
     }
@@ -232,7 +230,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
             budgetBar.value = Mathf.Clamp01(total / (maxPossibleBudget * 1.1f));
 
         if (totalText != null)
-            totalText.text = $"БЮДЖЕТ: {total:F0}";
+            totalText.text = $"BUDGET: {total:F0}";
 
         bool nowInZone = IsInTargetZone();
         if (nowInZone && !wasInZone)
@@ -295,7 +293,7 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
             hasWon = true;
             if (statusText != null)
             {
-                statusText.text = " БЮДЖЕТ ИДЕАЛЬНО СБАЛАНСИРОВАН!";
+                statusText.text = " BUDGET PERFECTLY BALANCED!";
                 statusText.color = new Color(0.2f, 0.9f, 0.3f);
             }
 
@@ -310,12 +308,12 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
             {
                 if (total < targetMin)
                 {
-                    statusText.text = " НЕДОБОР. Бюджет слишком мал.";
+                    statusText.text = " UNDER BUDGET. Spending is too low.";
                     statusText.color = new Color(1f, 0.3f, 0.3f);
                 }
                 else
                 {
-                    statusText.text = " ПЕРЕРАСХОД. Бюджет превышен.";
+                    statusText.text = " OVER BUDGET. Spending is too high.";
                     statusText.color = new Color(1f, 0.2f, 0.2f);
                 }
             }
@@ -329,7 +327,6 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         GeneratePuzzle();
         if (budgetFill != null) budgetFill.color = barColor;
         if (statusText != null) statusText.text = hintText;
-        EnsureMarkers();
         PositionMarkers();
         UpdateUI();
         Debug.Log($"=== NEW PUZZLE === Цель: {targetMin:F0}–{targetMax:F0} | Старт: {GetTotalBudget():F0}");
@@ -365,7 +362,8 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         }
     }
 
-    private void EnsureMarkers()
+    #if UNITY_EDITOR
+    public void EnsureMarkers()
     {
         if (targetZone == null || markerRects[0] != null) return;
 
@@ -390,9 +388,10 @@ public class BudgetMiniGame : MonoBehaviour, IPuzzle
         }
     }
 
+    #endif
+
     private void PositionMarkers()
     {
-        EnsureMarkers();
         for (int i = 0; i < markerRects.Length; i++)
         {
             RectTransform marker = markerRects[i];

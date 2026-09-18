@@ -10,11 +10,19 @@ public class DocumentReferencePanelUI : MonoBehaviour
     [SerializeField] private Transform rowContainer;
     [SerializeField] private GameObject rowPrefab;
 
-    private const float RowHeight = 44f;
+    private const float RowHeight = 70f;
     private bool built;
-    private ScrollRect scrollRect;
+    [SerializeField] private ScrollRect scrollRect;
 
-    private void Awake()
+    private void Start()
+    {
+        if (scrollRect == null && listPanel != null) scrollRect = listPanel.GetComponent<ScrollRect>();
+        Canvas.ForceUpdateCanvases();
+        if (scrollRect != null) scrollRect.verticalNormalizedPosition = 1f;
+    }
+
+    #if UNITY_EDITOR
+    public void BakeLayout()
     {
         if (folderButton != null)
             folderButton.gameObject.SetActive(false);
@@ -88,6 +96,7 @@ public class DocumentReferencePanelUI : MonoBehaviour
         foreach (var entry in DocumentRequestData.All)
         {
             GameObject row = Instantiate(rowPrefab, rowContainer);
+            WorkOutTheme.Skin(row.transform, WorkOutTheme.Surface.Raised).raycastTarget = false;
             RectTransform rowRect = row.GetComponent<RectTransform>();
             if (rowRect != null)
             {
@@ -101,8 +110,12 @@ public class DocumentReferencePanelUI : MonoBehaviour
             TMP_Text[] texts = row.GetComponentsInChildren<TMP_Text>();
             if (texts.Length >= 2)
             {
+                WorkOutTheme.Text(texts[0], 18f);
+                WorkOutTheme.Text(texts[1], 16f);
+                WorkOutTheme.Place(texts[0].transform, 0f, 0.35f, 1f, 1f, 12f, 0f, 12f, 3f);
+                WorkOutTheme.Place(texts[1].transform, 0f, 0f, 1f, 0.38f, 12f, 5f, 12f, 0f);
                 texts[0].text = entry.request;
-                texts[1].text = entry.shouldApprove ? "Согласовать" : "Отклонить";
+                texts[1].text = entry.shouldApprove ? "Approve" : "Reject";
                 texts[1].color = entry.shouldApprove
                     ? new Color(0.2f, 0.9f, 0.35f)
                     : new Color(1f, 0.3f, 0.3f);
@@ -111,4 +124,5 @@ public class DocumentReferencePanelUI : MonoBehaviour
             index++;
         }
     }
+    #endif
 }

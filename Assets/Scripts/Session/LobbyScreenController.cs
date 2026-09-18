@@ -81,7 +81,7 @@ public class LobbyScreenController : MonoBehaviour
             var role = RoleAssignmentManager.Instance.GetRoleFor(p.ClientId);
             var tile = Instantiate(playerTilePrefab, playerListContainer);
             var label = tile.GetComponentInChildren<TMP_Text>();
-            label.text = $"{p.PlayerName} [{role}] {(p.IsReady ? "v" : "x")}";
+            label.text = $"{p.PlayerName}  /  {WorkOutDesktop.RoleName(role)}\n{(p.IsReady ? "Ready for the shift" : "Choosing a role")}";
         }
 
         bool isHost = NetworkManager.Singleton.IsHost;
@@ -89,9 +89,9 @@ public class LobbyScreenController : MonoBehaviour
 
         if (isHost)
         {
-            actionButtonLabel.text = "Начать";
+            actionButtonLabel.text = "Start";
             actionButton.interactable = LobbyPlayerManager.Instance.AllNonHostPlayersReady();
-            myRoleLabel.text = "Роль: Boss";
+            myRoleLabel.text = "Role: Manager";
 
             // хосту кнопки выбора роли не нужны — скрываем
             typographerButton.gameObject.SetActive(false);
@@ -100,11 +100,11 @@ public class LobbyScreenController : MonoBehaviour
         }
         else
         {
-            myRoleLabel.text = myRole == GameRole.None ? "Роль: не выбрана" : $"Роль: {myRole}";
+            myRoleLabel.text = myRole == GameRole.None ? "Role: not selected" : $"Role: {WorkOutDesktop.RoleName(myRole)}";
 
             // блокируем "Готов", если роль не выбрана
             bool hasRole = myRole != GameRole.None;
-            actionButtonLabel.text = localIsReady ? "Не готов" : "Готов";
+            actionButtonLabel.text = localIsReady ? "Not ready" : "Ready";
             actionButton.interactable = hasRole;
 
             // блокируем уже занятые кем-то другим роли

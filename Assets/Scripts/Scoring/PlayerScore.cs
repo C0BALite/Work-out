@@ -67,6 +67,6 @@ public class PlayerScore : NetworkBehaviour
     private void UpdateUI()
     {
         if (scoreText != null)
-            scoreText.text = $"Очки: {TotalScore.Value}";
+            scoreText.text = $"Score: {TotalScore.Value}";
     }
 }

@@ -25,8 +25,6 @@ public class LobbyUIController : MonoBehaviour
         createButton.onClick.AddListener(OnCreateClicked);
         joinButton.onClick.AddListener(OnJoinClicked);
         lobbyCodeCopyButton = lobbyCodeDisplay.GetComponent<LobbyCodeCopyButton>();
-        if (lobbyCodeCopyButton == null)
-            lobbyCodeCopyButton = lobbyCodeDisplay.gameObject.AddComponent<LobbyCodeCopyButton>();
 
 #if UNITY_EDITOR
         if (debugJoinButton != null)
@@ -36,37 +34,37 @@ public class LobbyUIController : MonoBehaviour
 
     async void OnCreateClicked()
     {
-        statusText.text = "Создаём лобби...";
+        statusText.text = "Creating lobby...";
         try
         {
             string code = await SessionManager.Instance.CreateLobbyAsync("Host");
             lobbyCodeCopyButton.SetCode(code);
-            statusText.text = "Лобби создано, ждём игроков";
+            statusText.text = "Lobby created. Waiting for players";
 
             ShowLobbyScreen(); // новое
         }
         catch (System.Exception e)
         {
-            statusText.text = $"Ошибка: {e.Message}";
+            statusText.text = $"Error: {e.Message}";
         }
     }
 
     async void OnJoinClicked()
     {
         string code = joinCodeInput.text.Trim().ToUpper();
-        if (string.IsNullOrEmpty(code)) { statusText.text = "Введите код"; return; }
+        if (string.IsNullOrEmpty(code)) { statusText.text = "Enter a code"; return; }
 
-        statusText.text = "Подключаемся...";
+        statusText.text = "Connecting...";
         try
         {
             await SessionManager.Instance.JoinLobbyAsync(code);
-            statusText.text = "Подключено!";
+            statusText.text = "Connected!";
 
             ShowLobbyScreen(); // новое
         }
         catch (System.Exception e)
         {
-            statusText.text = $"Ошибка: {e.Message}";
+            statusText.text = $"Error: {e.Message}";
         }
     }
 
@@ -82,21 +80,21 @@ public class LobbyUIController : MonoBehaviour
         string code = SessionManager.DebugReadLastLobbyCode();
         if (string.IsNullOrEmpty(code))
         {
-            statusText.text = "Нет сохранённого кода — сначала создайте лобби в одном из окон";
+            statusText.text = "No saved code. Create a lobby in one of the windows first";
             return;
         }
 
-        statusText.text = $"Debug Join по коду {code}...";
+        statusText.text = $"Debug Join with code {code}...";
         try
         {
             await SessionManager.Instance.JoinLobbyAsync(code);
-            statusText.text = "Подключено!";
+            statusText.text = "Connected!";
 
             ShowLobbyScreen();
         }
         catch (System.Exception e)
         {
-            statusText.text = $"Ошибка: {e.Message}";
+            statusText.text = $"Error: {e.Message}";
         }
     }
 #endif
