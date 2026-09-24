@@ -36,12 +36,13 @@ public static class WorkOutStyleValidation
 
             CapturePuzzle("Assets/Scripts/Puzzles/Prefabs/BudgetMiniGame/Puzzle_BudgetMiniGame.prefab", session, slot, "budget");
             CapturePuzzle("Assets/Scripts/Puzzles/Prefabs/MarketingMiniGame/Puzzle_Marketing.prefab", session, slot, "documents");
-            CapturePuzzle("Assets/Scripts/Puzzles/Prefabs/DrawMiniGame/PuzzleDesignerMiniGame.prefab", session, slot, "drawing");
+            CapturePuzzle("Assets/Scripts/Puzzles/Prefabs/ColoringMiniGame/Puzzle_ColoringMiniGame.prefab", session, slot, "coloring");
             session.SetActive(false);
 
             var boss = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/BossCanvas.prefab"));
             Invoke(boss.GetComponentInChildren<DocumentReferencePanelUI>(true), "Start");
             Invoke(boss.GetComponentInChildren<BudgetBossPanelUI>(true), "Awake");
+            Invoke(boss.GetComponentInChildren<ColoringBossPanelUI>(true), "Awake");
             Render(boss, "boss");
             UnityEngine.Object.DestroyImmediate(boss);
             Debug.Log("WORK_OUT_STYLE_VALIDATION_OK: five actual Unity screens captured to " + Output);

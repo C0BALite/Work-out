@@ -9,6 +9,7 @@ using Unity.Services.Core;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>Offline host smoke test: real scene, role transitions, puzzle callbacks and rendered UI.</summary>
@@ -21,6 +22,7 @@ public static class WorkOutPlayValidation
     private static int errors;
     private static float budgetBefore;
     private static DocumentApprovalGame document;
+    private static ColoringMiniGame coloring;
     private static System.Threading.Tasks.Task services;
     private static string scorePath;
     private static byte[] savedScores;
@@ -141,27 +143,36 @@ public static class WorkOutPlayValidation
                     break;
                 case 8: StartRole(GameRole.Artist); break;
                 case 9:
-                    var paint = UnityEngine.Object.FindFirstObjectByType<PaintDrawer>();
-                    Require(paint != null, "Drawing game activates");
-                    var texture = paint.GetComponent<RawImage>().texture as Texture2D;
-                    Require(texture != null && texture.width > 100 && texture.height > 100, "Canvas texture has usable dimensions");
-                    PuzzleSlotCanvas.Instance.GetComponentsInChildren<Button>().First(b => b.name.Trim() == "ButtonBlue").onClick.Invoke();
-                    paint.GetType().GetMethod("DrawLine", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(paint, new object[] { new Vector2(40, 40), new Vector2(90, 90) });
-                    Require(texture.GetPixel(60, 60).b > 0.9f && texture.GetPixel(60, 60).r < 0.1f, "Brush writes pixels");
-                    PuzzleSlotCanvas.Instance.GetComponentsInChildren<Button>().First(b => b.name.Trim() == "ButtonEraser").onClick.Invoke();
-                    paint.GetType().GetMethod("DrawLine", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(paint, new object[] { new Vector2(40, 40), new Vector2(90, 90) });
-                    Require(texture.GetPixel(60, 60).r > 0.9f, "Eraser restores paper");
-                    WorkOutStyleValidation.Render(PuzzleSlotCanvas.Instance.gameObject, "runtime_drawing");
-                    ((Button)Field(paint, "doneButton")).onClick.Invoke();
-                    Require(paint.IsCompleted, "Send completes the drawing");
-                    GameSessionState.Instance.SetPhase(SessionPhase.Results);
+                    coloring = UnityEngine.Object.FindFirstObjectByType<ColoringMiniGame>();
+                    Require(coloring != null, "Coloring game activates");
+                    var sync = ColoringBossSync.Instance;
+                    Require(sync != null, "Coloring sync is spawned");
+                    Require(sync.TryGetPicture(out var picture) && picture.RegionCount > 3, "Server picked a picture with fill regions");
+                    Canvas.ForceUpdateCanvases();
+                    var canvasImage = coloring.GetComponent<RawImage>();
+                    Require(canvasImage.texture is Texture2D texture && texture.width > 100 && texture.height > 100, "Coloring texture has usable dimensions");
+                    var swatches = (Image[])Field(coloring, "swatches");
+                    for (int region = 0; region < picture.RegionCount; region++)
+                    {
+                        swatches[sync.TargetColors[region]].GetComponent<Button>().onClick.Invoke();
+                        coloring.OnPointerClick(new PointerEventData(EventSystem.current) { position = ScreenPointOf(canvasImage, picture, region) });
+                    }
+                    Require(Enumerable.Range(0, picture.RegionCount).All(r => sync.Fills[r] == sync.TargetColors[r]), "Every click fills its region on the server");
+                    WorkOutStyleValidation.Render(PuzzleSlotCanvas.Instance.gameObject, "runtime_coloring");
+                    ((Button)Field(coloring, "submitButton")).onClick.Invoke();
+                    Require(coloring.IsCompleted && coloring.GetLocalScore() > 0.99f, "Submit completes the coloring with a full match");
                     break;
                 case 10:
+                    Require(ColoringBossSync.Instance.Submitted.Value && ColoringBossSync.Instance.Accuracy.Value > 0.99f, "Server confirms the color match");
+                    WorkOutStyleValidation.Render(PuzzleSlotCanvas.Instance.gameObject, "runtime_coloring_result");
+                    GameSessionState.Instance.SetPhase(SessionPhase.Results);
+                    break;
+                case 11:
                     var results = UnityEngine.Object.FindFirstObjectByType<ResultsScreenController>();
                     Require(results != null, "Results screen activates");
                     WorkOutStyleValidation.Render(results.gameObject, "runtime_results");
                     Require(errors == 0, "No runtime errors (count=" + errors + ")");
-                    Finish(true, "Local host, boss, budget sliders, document decision, brush, eraser, send and results passed.");
+                    Finish(true, "Local host, boss, budget sliders, document decision, coloring fills, color match and results passed.");
                     break;
             }
         }
@@ -173,6 +184,26 @@ public static class WorkOutPlayValidation
         RoleAssignmentManager.Instance.Assignments.Clear();
         RoleAssignmentManager.Instance.Assignments.Add(new PlayerRoleData { ClientId = NetworkManager.Singleton.LocalClientId, Role = role });
         GameSessionState.Instance.SetPhase(SessionPhase.InGame);
+    }
+    // Picks a texel well inside the region so the screen round trip cannot land on a neighbouring area.
+    private static Vector2 ScreenPointOf(RawImage image, ColoringPicture picture, int region)
+    {
+        Vector2 texel = new Vector2(1f / picture.Width, 1f / picture.Height);
+        Vector2? inner = null, any = null;
+        for (int y = 0; y < picture.Height && inner == null; y += 2)
+        for (int x = 0; x < picture.Width && inner == null; x += 2)
+        {
+            var uv = new Vector2((x + 0.5f) * texel.x, (y + 0.5f) * texel.y);
+            if (picture.RegionAt(uv) != region) continue;
+            any ??= uv;
+            if (new[] { Vector2.left, Vector2.right, Vector2.up, Vector2.down }.All(d => picture.RegionAt(uv + Vector2.Scale(d * 3f, texel)) == region))
+                inner = uv;
+        }
+        Vector2 target = inner ?? any ?? throw new Exception("Region has no pixels: " + region);
+        Rect uvRect = image.uvRect, rect = image.rectTransform.rect;
+        var normalized = new Vector2((target.x - uvRect.x) / uvRect.width, (target.y - uvRect.y) / uvRect.height);
+        Vector3 world = image.rectTransform.TransformPoint(rect.min + Vector2.Scale(normalized, rect.size));
+        return RectTransformUtility.WorldToScreenPoint(null, world);
     }
     private static object Field(object obj, string name) => obj.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(obj);
     private static void Require(bool condition, string description)

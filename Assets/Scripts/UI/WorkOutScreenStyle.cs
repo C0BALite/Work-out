@@ -327,7 +327,7 @@ public static class WorkOutScreenStyle
         if (codeLabel != null) codeLabel.text = "Invite your team using the lobby code";
         Place(lobby.Find("PlayerRole"), 0.54f, 0.69f, 0.93f, 0.77f);
         string[] roles = { "Role1", "Role2", "Role3" };
-        string[] captions = { "Copywriter  /  Documents", "Designer  /  Drawing", "Programmer  /  Budget" };
+        string[] captions = { "Copywriter  /  Documents", "Designer  /  Coloring", "Programmer  /  Budget" };
         for (int i = 0; i < 3; i++)
         {
             var button = lobby.Find(roles[i]);
